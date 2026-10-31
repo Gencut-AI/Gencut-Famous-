@@ -2,7 +2,7 @@
   "name": "@gencut/db",
   "private": true,
   "version": "0.1.0",
-  "description": "GenCut for Creators Postgres schema: SQL migrations, migration runner, schema tests.",
+  "description": "GenCut Famous Postgres schema: SQL migrations, migration runner, schema tests.",
   "type": "module",
   "exports": {
     "./migrate": "./src/migrate.ts"

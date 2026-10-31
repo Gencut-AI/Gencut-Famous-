@@ -2,15 +2,15 @@ import type { MetadataRoute } from 'next';
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'GenCut for Creators',
+    name: 'GenCut Famous',
     short_name: 'GenCut',
     description: 'Your AI marketing team for creators.',
     start_url: '/home',
     scope: '/',
     display: 'standalone',
     orientation: 'portrait',
-    background_color: '#fafbfa',
-    theme_color: '#0f6e73',
+    background_color: '#f3efff',
+    theme_color: '#5b2be0',
     icons: [
       { src: '/icon-192.png', sizes: '192x192', type: 'image/png' },
       { src: '/icon-512.png', sizes: '512x512', type: 'image/png' },

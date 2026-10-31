@@ -32,11 +32,11 @@ export default async function MediaKitPage() {
         <Link href="/page/preview" className="btn-quiet">Preview</Link>
       </header>
 
-      <section aria-labelledby="status" className={`panel flex flex-col gap-4 ${page.published ? 'border-bay' : ''}`}>
+      <section aria-labelledby="status" className={`panel flex flex-col gap-4 ${page.published ? 'border-royal' : ''}`}>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h2 id="status" className="display text-xl font-semibold">
-              {page.published ? (<><span className="rec-dot mr-2 inline-block size-2.5 rounded-full bg-flamingo align-middle" aria-hidden />Live</>) : 'Not published'}
+              {page.published ? (<><span className="rec-dot mr-2 inline-block size-2.5 rounded-full bg-spark align-middle" aria-hidden />Live</>) : 'Not published'}
             </h2>
             <p className="text-sm text-ink-soft">{page.published && page.publishedAt ? `Published ${when(page.publishedAt)}` : 'Only your team can see the preview.'}</p>
           </div>
@@ -65,14 +65,14 @@ export default async function MediaKitPage() {
         <h2 id="posts" className="display text-xl font-semibold">Featured posts</h2>
         <p className="mt-1 text-sm text-ink-soft">Pick up to {PROFILE_CONTENT_MAX}. {shown} chosen. Each links to the post on its platform.</p>
         {content.length === 0 ? (
-          <p className="mt-4 text-ink-soft">Connect an account to choose posts. <Link href="/channels" className="font-medium text-bay-deep">Channels →</Link></p>
+          <p className="mt-4 text-ink-soft">Connect an account to choose posts. <Link href="/channels" className="font-medium text-royal-deep">Go to Channels</Link></p>
         ) : (
-          <ul className="mt-4 flex flex-col divide-y divide-glass">
+          <ul className="mt-4 flex flex-col divide-y divide-lilac">
             {content.slice(0, 30).map((c) => (
               <li key={c.id} className="flex items-center justify-between gap-3 py-3">
                 <div className="min-w-0">
                   <p className="truncate">{c.caption ?? 'No caption'}</p>
-                  <p className="text-xs text-ink-soft">{PLATFORM_LABELS[c.platform]}{c.publishedAt ? ` · ${day(c.publishedAt)}` : ''}</p>
+                  <p className="text-xs text-ink-soft">{PLATFORM_LABELS[c.platform]}{c.publishedAt ? `, ${day(c.publishedAt)}` : ''}</p>
                 </div>
                 <form action={toggleContent}>
                   <input type="hidden" name="id" value={c.id} />
@@ -102,9 +102,9 @@ export default async function MediaKitPage() {
             })}
           </ul>
           <figure className="flex flex-col items-center gap-2">
-            <img src={`/api/qr?handle=${encodeURIComponent(profile.handle)}&src=qr`} alt={`QR code for ${url}`} className="size-44 rounded-xl ring-1 ring-glass-deep" />
+            <img src={`/api/qr?handle=${encodeURIComponent(profile.handle)}&src=qr`} alt={`QR code for ${url}`} className="size-44 rounded-xl ring-1 ring-line" />
             <figcaption className="text-center text-xs text-ink-soft">QR code (tagged “qr”)</figcaption>
-            <a href={`/api/qr?handle=${encodeURIComponent(profile.handle)}&src=qr`} download={`gencut-${profile.handle}-qr.svg`} className="text-sm font-medium text-bay-deep">Download SVG</a>
+            <a href={`/api/qr?handle=${encodeURIComponent(profile.handle)}&src=qr`} download={`gencut-${profile.handle}-qr.svg`} className="text-sm font-medium text-royal-deep">Download SVG</a>
           </figure>
         </div>
       </section>

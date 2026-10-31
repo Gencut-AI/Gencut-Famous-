@@ -21,7 +21,7 @@ export async function generateMetadata({ params }: { params: Promise<{ handle: s
     title: { absolute: `${p.publicName} (@${p.handle}) · Media kit` },
     description,
     alternates: { canonical: url },
-    openGraph: { type: 'profile', url, title: `${p.publicName} · Media kit`, description, siteName: 'GenCut for Creators', username: p.handle },
+    openGraph: { type: 'profile', url, title: `${p.publicName} · Media kit`, description, siteName: 'GenCut Famous', username: p.handle },
     twitter: { card: 'summary_large_image', title: `${p.publicName} · Media kit`, description },
   };
 }

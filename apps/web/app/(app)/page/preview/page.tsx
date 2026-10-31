@@ -14,7 +14,7 @@ export default async function PreviewPage() {
   if (!p) notFound();
   return (
     <div className="-mx-5 -my-8 sm:-mx-10">
-      <div className="sticky top-[57px] z-[5] flex items-center justify-between gap-3 bg-[#fff4d6] px-5 py-2 text-sm text-[#7a5300] sm:px-10">
+      <div className="sticky top-[57px] z-[5] flex items-center justify-between gap-3 bg-[#fff1d6] px-5 py-2 text-sm text-[#7a4b00] sm:px-10">
         <span>Preview — this is what visitors will see.</span>
         <Link href="/page" className="font-semibold">Back to settings</Link>
       </div>

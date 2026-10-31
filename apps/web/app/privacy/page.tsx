@@ -6,7 +6,7 @@ export const metadata: Metadata = { title: 'Privacy' };
 export default function PrivacyPage() {
   return (
     <LegalPage title="Privacy">
-      <p>GenCut for Creators is operated by GenCut AI. This page explains what we collect, why, and how to have it deleted. Contact: privacy@gencut.ai.</p>
+      <p>GenCut Famous is operated by GenCut AI. This page explains what we collect, why, and how to have it deleted. Contact: privacy@gencut.ai.</p>
       <h2>What we collect from creators and their teams</h2>
       <ul>
         <li>Your email address, to sign you in.</li>
@@ -33,7 +33,7 @@ export default function PrivacyPage() {
         <li>If you remove GenCut from Instagram or ask Meta to delete your data, Meta tells us and we erase what we read from that account. See <a href="/data-deletion" className="underline">Data deletion</a>.</li>
       </ul>
       <h2>Ages</h2>
-      <p>GenCut for Creators is for people aged 18 or older in this version.</p>
+      <p>GenCut Famous is for people aged 18 or older in this version.</p>
     </LegalPage>
   );
 }

@@ -1,6 +1,7 @@
 import { listMemberships } from '@gencut/services';
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { Wordmark } from '../_ui/icons.tsx';
 import { redirect } from 'next/navigation';
 import { publicBase } from '../../lib/connectors.ts';
 import { db } from '../../lib/db.ts';
@@ -18,12 +19,11 @@ export default async function OnboardingPage({ searchParams }: { searchParams: P
   return (
     <main className="mx-auto flex min-h-dvh max-w-md flex-col px-5 pb-10 pt-[max(1.5rem,env(safe-area-inset-top))]">
       <header className="py-4">
-        <Link href="/" className="display text-xl font-semibold">
-          GenCut <span className="font-normal text-ink-soft">for Creators</span>
+        <Link href="/" aria-label="GenCut Famous home">
+          <Wordmark />
         </Link>
       </header>
-      <section className="mt-8">
-        <p className="eyebrow">Step 1 of 1</p>
+      <section className="panel mt-6">
         <h1 className="display mt-2 text-4xl font-bold">Let's set you up</h1>
         <p className="mt-3 text-ink-soft">Two things to start. Signed in as {ctx.email}.</p>
         <div className="mt-8">

@@ -8,7 +8,7 @@ export function SignInForm({ next }: { next: string }) {
 
   if (state.status === 'sent') {
     return (
-      <div className="rounded-panel bg-glass p-6" role="status">
+      <div className="rounded-panel bg-lilac/70 p-6" role="status">
         <h2 className="display text-2xl font-semibold">Check your inbox</h2>
         <p className="mt-2 text-ink-soft">
           We sent a sign-in link to <strong className="text-ink">{state.email}</strong>. Open it in this same browser to continue.
@@ -34,17 +34,17 @@ export function SignInForm({ next }: { next: string }) {
         defaultValue={state.status === 'error' ? state.email : ''}
         aria-invalid={state.status === 'error'}
         aria-describedby={state.status === 'error' ? 'email-error' : undefined}
-        className="h-14 rounded-xl border border-glass-deep bg-white px-4 text-lg outline-none focus:border-bay"
+        className="field h-14 text-lg"
       />
       {state.status === 'error' && (
-        <p id="email-error" className="text-sm text-[#b42345]">
+        <p id="email-error" className="text-sm text-[#c0264f]">
           {state.message}
         </p>
       )}
       <button
         type="submit"
         disabled={pending}
-        className="h-14 rounded-xl bg-bay text-lg font-semibold text-paper transition-colors hover:bg-bay-deep disabled:opacity-60"
+        className="btn h-14 text-lg"
       >
         {pending ? 'Sending…' : 'Email me a sign-in link'}
       </button>

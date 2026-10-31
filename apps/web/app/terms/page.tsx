@@ -6,7 +6,7 @@ export const metadata: Metadata = { title: 'Terms' };
 export default function TermsPage() {
   return (
     <LegalPage title="Terms">
-      <p>These terms cover your use of GenCut for Creators, operated by GenCut AI.</p>
+      <p>These terms cover your use of GenCut Famous, operated by GenCut AI.</p>
       <h2>Your account</h2>
       <ul>
         <li>You must be 18 or older, or manage the account for a creator who is.</li>

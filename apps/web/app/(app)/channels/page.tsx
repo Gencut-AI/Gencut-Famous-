@@ -37,21 +37,21 @@ export default async function ChannelsPage({ searchParams }: { searchParams: Pro
         </p>
       </header>
 
-      {error && <p role="alert" className="rounded-xl bg-[#fde7ec] p-4 text-sm text-[#7d1830]">{error}</p>}
-      {q.connected && <p role="status" className="rounded-xl bg-glass p-4 text-sm text-bay-deep">Instagram connected{q.state === 'partially_connected' ? ', but without insights permission — see below.' : '. The first reading arrives within a minute.'}</p>}
-      {q.disconnected && <p role="status" className="rounded-xl bg-glass p-4 text-sm text-bay-deep">Disconnected. GenCut deleted its copy of the token. To remove GenCut on Instagram too: Settings → Website permissions → Apps and websites.</p>}
-      {q.deleted && <p role="status" className="rounded-xl bg-glass p-4 text-sm text-bay-deep">Deleted: the account's posts and readings are gone from GenCut.</p>}
+      {error && <p role="alert" className="rounded-xl bg-[#ffe3ee] p-4 text-sm text-[#9c1747]">{error}</p>}
+      {q.connected && <p role="status" className="rounded-xl bg-lilac p-4 text-sm text-royal-deep">Instagram connected{q.state === 'partially_connected' ? ', but without insights permission — see below.' : '. The first reading arrives within a minute.'}</p>}
+      {q.disconnected && <p role="status" className="rounded-xl bg-lilac p-4 text-sm text-royal-deep">Disconnected. GenCut deleted its copy of the token. To remove GenCut on Instagram too: Settings → Website permissions → Apps and websites.</p>}
+      {q.deleted && <p role="status" className="rounded-xl bg-lilac p-4 text-sm text-royal-deep">Deleted: the account's posts and readings are gone from GenCut.</p>}
 
       <ul className="flex flex-col gap-4">
         {CONNECTORS.map((m) => {
           const mine = channels.filter((c) => c.platform === m.platform);
           const available = m.build === 'available';
           return (
-            <li key={m.platform} className={`panel ${available ? '' : 'bg-glass/40'}`}>
+            <li key={m.platform} className={`panel ${available ? '' : 'bg-lilac/40'}`}>
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
                   <h2 className="display text-2xl font-semibold">{PLATFORM_LABELS[m.platform]}</h2>
-                  <p className="mt-1 text-sm text-ink-soft">{available ? m.oauth : `Not built yet · ${m.approval}`}</p>
+                  <p className="mt-1 text-sm text-ink-soft">{available ? m.oauth : `Not built yet. Needs ${m.approval.charAt(0).toLowerCase()}${m.approval.slice(1)}`}</p>
                 </div>
                 {available && mine.length === 0 && (
                   testers && missing.length === 0 ? (
@@ -60,12 +60,12 @@ export default async function ChannelsPage({ searchParams }: { searchParams: Pro
                       {canManage && <a href="/api/connect/instagram/start" className="btn">Connect as a tester</a>}
                     </div>
                   ) : missing.length ? (
-                    <span className="rounded-full bg-paper px-2.5 py-1 text-xs font-semibold text-ink-soft ring-1 ring-glass-deep">Not configured</span>
+                    <span className="rounded-full bg-paper px-2.5 py-1 text-xs font-semibold text-ink-soft ring-1 ring-line">Not configured</span>
                   ) : (
                     canManage && <a href="/api/connect/instagram/start" className="btn">Connect Instagram</a>
                   )
                 )}
-                {!available && <span className="rounded-full bg-paper px-2.5 py-1 text-xs font-semibold text-ink-soft ring-1 ring-glass-deep">Roadmap</span>}
+                {!available && <span className="rounded-full bg-paper px-2.5 py-1 text-xs font-semibold text-ink-soft ring-1 ring-line">Roadmap</span>}
               </div>
 
               {available && testers && mine.length === 0 && missing.length === 0 && (
@@ -73,21 +73,21 @@ export default async function ChannelsPage({ searchParams }: { searchParams: Pro
               )}
 
               {mine.map((c) => (
-                <div key={c.id} className="mt-5 flex flex-col gap-3 rounded-xl bg-white p-4 ring-1 ring-glass-deep">
+                <div key={c.id} className="mt-5 flex flex-col gap-3 rounded-xl bg-white p-4 ring-1 ring-line">
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
                       <p className="font-semibold">@{c.username}</p>
                       <p className="text-xs text-ink-soft">
-                        {c.accountType === 'MEDIA_CREATOR' ? 'Creator account' : c.accountType === 'BUSINESS' ? 'Business account' : c.accountType ?? 'Account type unknown'} · connected {day(c.connectedAt)}
-                        {c.accessExpiresAt ? ` · access renews before ${day(c.accessExpiresAt)}` : ''}
+                        {c.accountType === 'MEDIA_CREATOR' ? 'Creator account' : c.accountType === 'BUSINESS' ? 'Business account' : c.accountType ?? 'Account type unknown'}, connected {day(c.connectedAt)}
+                        {c.accessExpiresAt ? `, access renews before ${day(c.accessExpiresAt)}` : ''}
                       </p>
                     </div>
                     <StateBadge state={c.state} />
                   </div>
                   {c.missingScopes.length > 0 && (
-                    <p className="text-sm text-[#7a5300]">Missing permission: {c.missingScopes.join(', ')}. Reach, views and post insights stay unavailable until you reconnect and allow it.</p>
+                    <p className="text-sm text-[#7a4b00]">Missing permission: {c.missingScopes.join(', ')}. Reach, views and post insights stay unavailable until you reconnect and allow it.</p>
                   )}
-                  {c.authError && <p className="text-sm text-[#7d1830]">Instagram refused GenCut's access: {c.authError}. Reconnect to continue.</p>}
+                  {c.authError && <p className="text-sm text-[#9c1747]">Instagram refused GenCut's access: {c.authError}. Reconnect to continue.</p>}
                   <p className="text-xs text-ink-soft">
                     {c.lastSyncedAt ? `Last read ${when(c.lastSyncedAt)} (${c.lastSyncStatus})` : 'Not read yet'}{c.lastSyncError ? ` — ${c.lastSyncError}` : ''}
                   </p>
@@ -105,7 +105,7 @@ export default async function ChannelsPage({ searchParams }: { searchParams: Pro
 
               {available && (
                 <details className="mt-5 text-sm">
-                  <summary className="min-h-11 cursor-pointer content-center font-medium text-bay-deep">What this connection can and cannot do</summary>
+                  <summary className="min-h-11 cursor-pointer content-center font-medium text-royal-deep">What this connection can and cannot do</summary>
                   <dl className="mt-3 grid gap-x-6 gap-y-3 sm:grid-cols-[12rem_1fr]">
                     <dt className="font-medium">Permissions asked</dt><dd className="text-ink-soft">{m.requiredScopes.join(', ')}</dd>
                     <dt className="font-medium">Account types</dt><dd className="text-ink-soft">Creator or Business accounts</dd>
@@ -131,13 +131,13 @@ export default async function ChannelsPage({ searchParams }: { searchParams: Pro
           <p className="mt-1 text-sm text-ink-soft">GenCut no longer holds a token for these. Their past posts and readings are kept for your history until you delete them.</p>
           <ul className="mt-4 flex flex-col gap-3">
             {gone.map((g) => (
-              <li key={g.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-white p-3 ring-1 ring-glass-deep">
-                <span>{PLATFORM_LABELS[g.platform]} @{g.username} · disconnected {day(g.revokedAt)}</span>
+              <li key={g.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-white p-3 ring-1 ring-line">
+                <span>{PLATFORM_LABELS[g.platform]} @{g.username}, disconnected {day(g.revokedAt)}</span>
                 {canDelete && (
                   <form action={eraseData} className="flex items-center gap-3">
                     <input type="hidden" name="id" value={g.id} />
-                    <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="confirm" className="size-4 accent-[#b42345]" />I understand this cannot be undone</label>
-                    <button type="submit" className="min-h-11 rounded-xl px-3 text-sm font-medium text-[#b42345] ring-1 ring-[#f3c2cd] hover:bg-[#fde7ec]">Delete data</button>
+                    <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="confirm" className="size-4 accent-[#c0264f]" />I understand this cannot be undone</label>
+                    <button type="submit" className="min-h-11 rounded-xl px-3 text-sm font-medium text-[#c0264f] ring-1 ring-[#f7bfd4] hover:bg-[#ffe3ee]">Delete data</button>
                   </form>
                 )}
               </li>

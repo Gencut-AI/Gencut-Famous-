@@ -36,7 +36,7 @@ export default async function AnalyticsPage() {
           <ul className="flex flex-col gap-3 md:hidden">
             {content.map((c) => (
               <li key={c.id} className="panel flex flex-col gap-3">
-                <span className="eyebrow">{PLATFORM_LABELS[c.platform]}{c.publishedAt ? ` · ${day(c.publishedAt)}` : ''}</span>
+                <span className="eyebrow">{PLATFORM_LABELS[c.platform]}{c.publishedAt ? `, ${day(c.publishedAt)}` : ''}</span>
                 <p className="line-clamp-2">{c.caption ?? 'No caption'}</p>
                 <dl className="grid grid-cols-3 gap-3">
                   {COLUMNS.map((m) => {
@@ -49,26 +49,26 @@ export default async function AnalyticsPage() {
                     );
                   })}
                 </dl>
-                {c.permalink && <a href={c.permalink} target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-bay-deep">Open ↗</a>}
+                {c.permalink && <a href={c.permalink} target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-royal-deep">Open ↗</a>}
               </li>
             ))}
           </ul>
-          <div className="hidden overflow-x-auto rounded-panel ring-1 ring-glass-deep md:block">
+          <div className="panel hidden overflow-x-auto p-0 sm:p-0 md:block">
             <table className="w-full text-left text-sm">
               <caption className="sr-only">Recent posts and their platform-reported numbers since posting</caption>
-              <thead className="bg-glass text-xs uppercase tracking-wide text-ink-soft">
+              <thead className="bg-lilac/70 text-sm text-ink-soft">
                 <tr>
                   <th scope="col" className="p-3">Post</th>
                   <th scope="col" className="p-3">Posted</th>
                   {COLUMNS.map((m) => <th key={m} scope="col" className="p-3 text-right" title={METRICS[m].definition}>{METRICS[m].label}</th>)}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-glass bg-paper">
+              <tbody className="divide-y divide-lilac">
                 {content.map((c) => (
                   <tr key={c.id}>
                     <td className="max-w-[24rem] p-3">
-                      {c.permalink ? <a href={c.permalink} target="_blank" rel="noopener noreferrer" className="line-clamp-2 hover:text-bay-deep">{c.caption ?? 'No caption'}</a> : <span className="line-clamp-2">{c.caption ?? 'No caption'}</span>}
-                      <span className="text-xs text-ink-soft">{PLATFORM_LABELS[c.platform]}{c.mediaType === 'CAROUSEL_ALBUM' ? ' · carousel (no insights from Meta)' : ''}</span>
+                      {c.permalink ? <a href={c.permalink} target="_blank" rel="noopener noreferrer" className="line-clamp-2 hover:text-royal-deep">{c.caption ?? 'No caption'}</a> : <span className="line-clamp-2">{c.caption ?? 'No caption'}</span>}
+                      <span className="text-xs text-ink-soft">{PLATFORM_LABELS[c.platform]}{c.mediaType === 'CAROUSEL_ALBUM' ? ', carousel (no insights from Meta)' : ''}</span>
                     </td>
                     <td className="whitespace-nowrap p-3 text-ink-soft">{c.publishedAt ? day(c.publishedAt) : '—'}</td>
                     {COLUMNS.map((m) => {

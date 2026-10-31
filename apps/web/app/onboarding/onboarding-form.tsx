@@ -16,7 +16,7 @@ export function OnboardingForm({ publicBase }: { publicBase: string }) {
         <input id="publicName" name="publicName" className="field" autoComplete="nickname" required maxLength={80} aria-invalid={Boolean(err.publicName)} />
       </Field>
       <Field id="handle" label="Your GenCut handle" hint={`Your media kit will live at ${publicBase.replace(/^https?:\/\//, '')}/@${shown}`} error={err.handle}>
-        <div className="flex items-center rounded-xl border border-glass-deep bg-white focus-within:border-bay">
+        <div className="flex items-center rounded-xl border border-line bg-white focus-within:border-royal">
           <span className="pl-4 text-ink-soft">@</span>
           <input
             id="handle"
@@ -35,7 +35,7 @@ export function OnboardingForm({ publicBase }: { publicBase: string }) {
       </Field>
       <div className="flex flex-col gap-1.5">
         <label className="flex items-start gap-3 text-[0.95rem]">
-          <input type="checkbox" name="adult" className="mt-1 size-5 accent-bay" aria-invalid={Boolean(err.adult)} />
+          <input type="checkbox" name="adult" className="mt-1 size-5 accent-royal" aria-invalid={Boolean(err.adult)} />
           <span>I am 18 or older, or I manage this creator and they are 18 or older.</span>
         </label>
         {err.adult && <p className="error-text">{err.adult}</p>}

@@ -1,23 +1,23 @@
 {
-  "name": "gencut-creators",
+  "name": "gencut-famous",
   "private": true,
   "version": "0.1.0",
-  "description": "GenCut for Creators — the AI marketing workforce for creators, influencers and public figures.",
+  "description": "GenCut Famous — the AI marketing workforce for creators, influencers and public figures.",
   "type": "module",
   "packageManager": "pnpm@10.28.0",
   "engines": {
     "node": ">=22.18.0"
   },
   "scripts": {
-    "typecheck": "tsc -p tsconfig.json && pnpm --filter @gencut/creators-web typecheck",
+    "typecheck": "tsc -p tsconfig.json && pnpm --filter @gencut/famous-web typecheck",
     "test": "node --test --test-concurrency=1 --test-reporter=spec \"packages/*/test/**/*.test.ts\" \"apps/*/test/**/*.test.ts\" \"scripts/**/*.test.ts\"",
     "test:core": "node --test --test-reporter=spec \"packages/core/test/**/*.test.ts\"",
     "lint": "node scripts/lint.ts",
     "check": "pnpm run lint && pnpm run typecheck && pnpm run test",
     "db:migrate": "node packages/db/src/migrate.ts up",
     "db:rollback": "node packages/db/src/migrate.ts down",
-    "build": "pnpm --filter @gencut/creators-web build",
-    "dev": "pnpm --filter @gencut/creators-web dev",
+    "build": "pnpm --filter @gencut/famous-web build",
+    "dev": "pnpm --filter @gencut/famous-web dev",
     "test:ci": "node --test --test-concurrency=1 --test-reporter=spec --test-reporter-destination=stdout --test-reporter=junit --test-reporter-destination=test-results.xml \"packages/*/test/**/*.test.ts\" \"apps/*/test/**/*.test.ts\" \"scripts/**/*.test.ts\""
   },
   "devDependencies": {

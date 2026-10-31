@@ -11,7 +11,7 @@ export function UploadForm({ kind, label, withCaption }: { kind: string; label: 
     <form action={action} className="flex flex-col gap-2">
       <input type="hidden" name="kind" value={kind} />
       <label className="text-sm font-medium" htmlFor={`file-${kind}`}>{label}</label>
-      <input id={`file-${kind}`} name="file" type="file" accept="image/png,image/jpeg,image/webp" className="text-sm file:mr-3 file:min-h-10 file:rounded-lg file:border-0 file:bg-glass file:px-3 file:font-medium file:text-bay-deep" />
+      <input id={`file-${kind}`} name="file" type="file" accept="image/png,image/jpeg,image/webp" className="text-sm file:mr-3 file:min-h-10 file:rounded-lg file:border-0 file:bg-lilac file:px-3 file:font-medium file:text-royal-deep" />
       {withCaption && <input name="caption" placeholder="Caption (optional)" className="field" maxLength={200} aria-label="Caption" />}
       <div className="flex items-center gap-3">
         <button type="submit" disabled={pending} className="btn-quiet">{pending ? 'Uploading…' : 'Upload'}</button>

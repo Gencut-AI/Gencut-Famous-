@@ -1,25 +1,27 @@
 @import "tailwindcss";
 
 /*
- * GenCut design tokens.
- * Palette drawn from Biscayne Bay: deep bay ink, sea-glass surfaces, a teal
- * working color, and a flamingo accent reserved for "live" moments (the Film
- * Crew recording, an item that needs the user now). Type: Archivo, using its
- * width axis — expanded for display (Miami Beach deco signage), normal for text.
+ * GenCut Famous design tokens.
+ * Royal purple for every action, aubergine ink for text, a lavender haze page
+ * with a faint translucent grid behind frosted-glass tiles. Hot pink ("spark")
+ * is reserved for live moments: a page that is published, an unread inquiry.
+ * Type: Bricolage Grotesque, one family, sentence case, optical sizes on.
  */
 @theme {
-  --color-ink: #10242b;
-  --color-ink-soft: #3d555c;
-  --color-paper: #fafbfa;
-  --color-glass: #e4eeeb;
-  --color-glass-deep: #c9dcd7;
-  --color-bay: #0f6e73;
-  --color-bay-deep: #0a5357;
-  --color-flamingo: #ef5f82;
+  --color-ink: #1b1035;
+  --color-ink-soft: #5d5279;
+  --color-haze: #f3efff;
+  --color-paper: #fbfaff;
+  --color-lilac: #ebe4ff;
+  --color-line: #d9cffa;
+  --color-royal: #5b2be0;
+  --color-royal-deep: #3a1a9e;
+  --color-spark: #ff4f9a;
 
-  --font-sans: 'Archivo Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: 'Bricolage Grotesque Variable', ui-sans-serif, system-ui, sans-serif;
 
-  --radius-panel: 1.25rem;
+  --radius-panel: 1.5rem;
+  --radius-tile: 1.125rem;
 }
 
 :root {
@@ -27,28 +29,37 @@
 }
 
 html {
-  background: var(--color-paper);
+  background: var(--color-haze);
   color: var(--color-ink);
   -webkit-text-size-adjust: 100%;
 }
 
+/* The translucent grid: faint violet lines on lavender, with two soft glows. Fixed, so tiles slide over it. */
 body {
   font-family: var(--font-sans);
-  font-variation-settings: 'wdth' 100;
-  line-height: 1.55;
+  font-optical-sizing: auto;
+  line-height: 1.5;
   min-height: 100dvh;
+  background:
+    radial-gradient(60rem 40rem at -10% -10%, rgb(91 43 224 / 0.16), transparent 60%),
+    radial-gradient(50rem 36rem at 110% 105%, rgb(255 79 154 / 0.1), transparent 60%),
+    linear-gradient(rgb(91 43 224 / 0.06) 1px, transparent 1px) 0 0 / 32px 32px,
+    linear-gradient(90deg, rgb(91 43 224 / 0.06) 1px, transparent 1px) 0 0 / 32px 32px,
+    var(--color-haze);
+  background-attachment: fixed;
 }
 
 .display {
-  font-variation-settings: 'wdth' 125;
-  letter-spacing: -0.02em;
-  line-height: 1.02;
+  font-variation-settings: 'opsz' 96;
+  font-weight: 750;
+  letter-spacing: -0.03em;
+  line-height: 0.98;
 }
 
 :focus-visible {
-  outline: 3px solid var(--color-bay);
+  outline: 3px solid var(--color-royal);
   outline-offset: 3px;
-  border-radius: 6px;
+  border-radius: 8px;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -60,70 +71,64 @@ body {
   }
 }
 
-@keyframes rec {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.35;
-  }
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
 }
-
 .rec-dot {
-  animation: rec 1.6s ease-in-out infinite;
+  animation: pulse-dot 1.6s ease-in-out infinite;
 }
 
-/* Leads tab: cards rise in one after another (--i is the item's position), stage bars fill. */
-@keyframes rise {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
+/* One orchestrated moment: the home tiles settle in once on load. */
+@keyframes settle {
+  from { opacity: 0; transform: translateY(8px) scale(0.985); }
+  to { opacity: 1; transform: none; }
 }
-.rise {
-  animation: rise 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) both;
-  animation-delay: calc(var(--i, 0) * 60ms);
+.settle > * {
+  animation: settle 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) both;
 }
-@keyframes fill {
-  from {
-    transform: scaleX(0);
-  }
-  to {
-    transform: scaleX(1);
-  }
-}
-.stage-fill {
-  transform-origin: left;
-  animation: fill 0.45s ease-out both;
-  animation-delay: calc(var(--i, 0) * 60ms + var(--s, 0) * 90ms + 200ms);
-}
+.settle > *:nth-child(2) { animation-delay: 60ms; }
+.settle > *:nth-child(3) { animation-delay: 120ms; }
+.settle > *:nth-child(4) { animation-delay: 180ms; }
+.settle > *:nth-child(n + 5) { animation-delay: 240ms; }
 
-/* Shared form and surface classes (same look as GenCut Properties). */
 @layer components {
+  /* Frosted glass: the main surface. Larger radius for panels, smaller for tiles inside them. */
+  .panel {
+    @apply rounded-panel p-5 sm:p-6;
+    background: rgb(255 255 255 / 0.62);
+    border: 1px solid rgb(255 255 255 / 0.75);
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.9), 0 18px 40px -24px rgb(58 26 158 / 0.4);
+    backdrop-filter: blur(18px) saturate(140%);
+    -webkit-backdrop-filter: blur(18px) saturate(140%);
+  }
+  .tile {
+    @apply rounded-tile p-4;
+    background: rgb(255 255 255 / 0.55);
+    border: 1px solid rgb(255 255 255 / 0.8);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
   .field {
-    @apply h-12 w-full rounded-xl border border-glass-deep bg-white px-4 text-base outline-none focus:border-bay aria-[invalid=true]:border-[#b42345];
+    @apply h-12 w-full rounded-xl border border-line bg-white/90 px-4 text-base outline-none transition-colors focus:border-royal aria-[invalid=true]:border-[#c0264f];
   }
   .field-area {
-    @apply min-h-28 w-full rounded-xl border border-glass-deep bg-white px-4 py-3 text-base outline-none focus:border-bay aria-[invalid=true]:border-[#b42345];
+    @apply min-h-28 w-full rounded-xl border border-line bg-white/90 px-4 py-3 text-base outline-none transition-colors focus:border-royal aria-[invalid=true]:border-[#c0264f];
   }
   .btn {
-    @apply inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-bay px-5 font-semibold text-paper transition-colors hover:bg-bay-deep disabled:opacity-60;
+    @apply inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-royal px-6 font-semibold text-white transition-colors hover:bg-royal-deep disabled:opacity-60;
+    box-shadow: 0 10px 24px -12px rgb(91 43 224 / 0.8);
   }
   .btn-quiet {
-    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 font-medium text-bay-deep ring-1 ring-glass-deep transition-colors hover:bg-glass disabled:opacity-60;
+    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-white/70 px-5 font-semibold text-royal-deep ring-1 ring-line transition-colors hover:bg-white disabled:opacity-60;
   }
-  .panel {
-    @apply rounded-panel border border-glass-deep bg-paper p-5 sm:p-6;
+  .chip {
+    @apply inline-flex min-h-8 items-center gap-1.5 rounded-full bg-lilac px-3 text-sm font-medium text-royal-deep;
   }
   .eyebrow {
-    @apply text-xs font-semibold uppercase tracking-[0.08em] text-ink-soft;
+    @apply text-sm font-medium text-ink-soft;
   }
   .error-text {
-    @apply text-sm text-[#b42345];
+    @apply text-sm text-[#c0264f];
   }
 }

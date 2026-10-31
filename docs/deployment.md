@@ -3,7 +3,7 @@
 | Piece | Where | Status (31 Oct 2026) |
 | --- | --- | --- |
 | Database | Supabase project "GenCut Creators" (`kwbttmmadzxlbplqgrvi`, us-east-1, free plan) | Created; migrations 0001–0004 applied |
-| Code | GitHub `Gencut-AI/gencut-creators` | Waiting for the repository to be created |
+| Code | GitHub `Gencut-AI/Gencut-Famous-` | Pushed (main) |
 | Web | Netlify (new site, package directory `apps/web`) | Not created |
 | Domain | `gencut.ai` for media kits | Not attached |
 

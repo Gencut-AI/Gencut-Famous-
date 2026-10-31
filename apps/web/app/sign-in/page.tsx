@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { Wordmark } from '../_ui/icons.tsx';
 import { redirect } from 'next/navigation';
 import { safeNextPath } from '../../lib/safe-redirect.ts';
 import { currentUser } from '../../lib/session.ts';
@@ -14,15 +15,15 @@ export default async function SignInPage({ searchParams }: { searchParams: Promi
   return (
     <main className="mx-auto flex min-h-dvh max-w-md flex-col px-5 pb-10 pt-[max(1.5rem,env(safe-area-inset-top))]">
       <header className="py-4">
-        <Link href="/" className="display text-xl font-semibold">
-          GenCut <span className="font-normal text-ink-soft">for Creators</span>
+        <Link href="/" aria-label="GenCut Famous home">
+          <Wordmark />
         </Link>
       </header>
-      <section className="mt-10">
+      <section className="panel mt-8">
         <h1 className="display text-4xl font-bold">Sign in</h1>
         <p className="mt-3 text-ink-soft">We'll email you a link. No password to remember.</p>
         {error === 'link' && (
-          <p className="mt-4 rounded-xl bg-[#fde7ec] p-4 text-sm text-[#7d1830]" role="alert">
+          <p className="mt-4 rounded-xl bg-[#ffe3ee] p-4 text-sm text-[#9c1747]" role="alert">
             That sign-in link didn't work. It may have expired, been used already, or been opened in a different browser from the one you requested it in. Request a new one below and open it on this device.
           </p>
         )}

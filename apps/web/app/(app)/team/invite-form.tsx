@@ -8,7 +8,7 @@ export function InviteForm() {
   const [copied, setCopied] = useState(false);
   if (state.status === 'created') {
     return (
-      <div className="flex flex-col gap-3 rounded-xl bg-glass p-4" role="status">
+      <div className="flex flex-col gap-3 rounded-xl bg-lilac p-4" role="status">
         <p className="font-semibold">Invitation for {state.email}</p>
         <p className="text-sm text-ink-soft">Send this link yourself; GenCut does not email it. It works once, for 7 days, and only when signed in as {state.email}. It is shown only now.</p>
         <div className="flex gap-2">

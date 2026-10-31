@@ -2,7 +2,7 @@
   "name": "@gencut/services",
   "private": true,
   "version": "0.1.0",
-  "description": "GenCut for Creators application services: database-backed use cases with authorization and audit.",
+  "description": "GenCut Famous application services: database-backed use cases with authorization and audit.",
   "type": "module",
   "exports": {
     ".": "./src/index.ts"

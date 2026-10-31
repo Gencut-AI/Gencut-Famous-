@@ -28,7 +28,7 @@ export function SettingsForm(props: { headline: string; workWithMe: string; show
         <p className="text-sm text-ink-soft">Only figures read from your connected accounts appear, each with its source and date. Nothing is shown for a platform until it has been read.</p>
         <div className="flex flex-wrap gap-2">
           {METRIC_CHOICES.map(([k, label]) => (
-            <label key={k} className="flex min-h-10 cursor-pointer items-center gap-2 rounded-full bg-white px-3 text-sm ring-1 ring-glass-deep has-[:checked]:bg-glass has-[:checked]:text-bay-deep has-[:checked]:ring-bay">
+            <label key={k} className="flex min-h-10 cursor-pointer items-center gap-2 rounded-full bg-white px-3 text-sm ring-1 ring-line has-[:checked]:bg-lilac has-[:checked]:text-royal-deep has-[:checked]:ring-royal">
               <input type="checkbox" name="shownMetrics" value={k} defaultChecked={props.shownMetrics.includes(k)} className="sr-only" />
               {label}
             </label>
@@ -36,7 +36,7 @@ export function SettingsForm(props: { headline: string; workWithMe: string; show
         </div>
       </fieldset>
       <label className="flex items-center gap-3 text-[0.95rem]">
-        <input type="checkbox" name="showInquiryForm" defaultChecked={props.showInquiryForm} className="size-5 accent-bay" />
+        <input type="checkbox" name="showInquiryForm" defaultChecked={props.showInquiryForm} className="size-5 accent-royal" />
         Show an inquiry form so brands and press can contact you
       </label>
       <div className="flex items-center gap-4">

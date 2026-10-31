@@ -1,10 +1,10 @@
-# AGENTS.md — working in the GenCut for Creators repository
+# AGENTS.md — working in the GenCut Famous repository
 
 Instructions for AI coding agents and human contributors. Keep this file accurate; update it in the same pull request as any change it describes.
 
 ## What this is
 
-GenCut for Creators: brand profile → connected accounts → verified metrics → public media kit → inquiries, with a read-only assistant. A separate codebase from GenCut Properties (D-001) that copies its proven foundations and design tokens. The product directive is the "GenCut for Creators — Master Development Directive"; status by feature is in `docs/product.md`.
+GenCut Famous: brand profile → connected accounts → verified metrics → public media kit → inquiries, with a read-only assistant. A separate codebase from GenCut Properties (D-001) that copies its proven foundations; its look is its own (D-009: royal purple, glass over a faint grid, Bricolage Grotesque). The product directive is the "GenCut for Creators — Master Development Directive" (now named GenCut Famous); status by feature is in `docs/product.md`.
 
 ## Layout
 

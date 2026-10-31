@@ -30,12 +30,12 @@ export function InquiryForm({ handle, publicName, kinds }: { handle: string; pub
       <label className="flex flex-col gap-1.5 text-sm font-medium sm:col-span-2">Company or publication (optional)<input name="organization" className="field" autoComplete="organization" maxLength={120} /></label>
       <label className="flex flex-col gap-1.5 text-sm font-medium sm:col-span-2">Message<textarea name="message" className="field-area" maxLength={2000} aria-invalid={Boolean(e.message)} />{e.message && <span className="error-text">{e.message}</span>}</label>
       <label className="flex items-start gap-3 text-sm sm:col-span-2">
-        <input type="checkbox" name="consent" className="mt-0.5 size-5 shrink-0 accent-bay" aria-invalid={Boolean(e.consent)} />
+        <input type="checkbox" name="consent" className="mt-0.5 size-5 shrink-0 accent-royal" aria-invalid={Boolean(e.consent)} />
         <span>{inquiryConsentText(publicName)} <a href="/privacy" className="underline">Privacy</a></span>
       </label>
       {e.consent && <p className="error-text sm:col-span-2">{e.consent}</p>}
       {state.status === 'error' && !Object.keys(e).length && <p role="alert" className="error-text sm:col-span-2">{state.message}</p>}
-      <button type="submit" disabled={pending} className="btn sm:col-span-2">{pending ? 'Sending…' : 'Send inquiry'}</button>
+      <button type="submit" disabled={pending} className="btn sm:col-span-2 w-full">{pending ? 'Sending…' : 'Send inquiry'}</button>
     </form>
   );
 }

@@ -1,13 +1,15 @@
-import { PLATFORM_LABELS, PROFILE_SECTIONS, sectionStatus } from '@gencut/core';
-import { getCreatorProfile, getDashboard, getPageSettings, syncWorkspace } from '@gencut/services';
+import { type ConnectionState, PLATFORM_LABELS, type Platform, PROFILE_SECTIONS, sectionStatus } from '@gencut/core';
+import { getCreatorProfile, getDashboard, getPageSettings, listMedia, syncWorkspace } from '@gencut/services';
 import type { Metadata } from 'next';
-import { after } from 'next/server';
 import Link from 'next/link';
+import { after } from 'next/server';
 import { connectorDeps } from '../../../lib/connectors.ts';
 import { db } from '../../../lib/db.ts';
-import { compact, day, n, signed, when } from '../../../lib/format.ts';
+import { day, n, signed, when } from '../../../lib/format.ts';
 import { requireSession } from '../../../lib/session.ts';
+import { Avatar } from '../../_ui/avatar.tsx';
 import { FigureTile, Sparkline } from '../../_ui/figure.tsx';
+import { Icons } from '../../_ui/icons.tsx';
 import { StateBadge } from '../../_ui/state-badge.tsx';
 import { refreshNow } from './actions.ts';
 import { AskBox } from './ask-box.tsx';
@@ -19,10 +21,23 @@ function greeting(now: Date): string {
   return hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
 }
 
+const SHORT: Record<Platform, string> = { instagram: 'IG', youtube: 'YT', tiktok: 'TT', facebook: 'FB', threads: 'TH', linkedin: 'LI', x: 'X' };
+
+const RING: Record<ConnectionState, string> = {
+  connected: 'bg-royal',
+  partially_connected: 'bg-[#f0a92e]',
+  pending_approval: 'bg-[#f0a92e]',
+  expired: 'bg-[#e0386f]',
+  revoked: 'bg-line',
+  unsupported: 'bg-[#e0386f]',
+  error: 'bg-[#e0386f]',
+};
+
 export default async function HomePage() {
   const { ctx, workspace } = await requireSession();
   const ws = workspace.workspaceId;
-  const [profile, d, page] = await Promise.all([getCreatorProfile(db(), ctx, ws), getDashboard(db(), ctx, ws), getPageSettings(db(), ctx, ws)]);
+  const [profile, d, page, media] = await Promise.all([getCreatorProfile(db(), ctx, ws), getDashboard(db(), ctx, ws), getPageSettings(db(), ctx, ws), listMedia(db(), ctx, ws)]);
+  const photo = media.find((m) => m.kind === 'profile_photo');
 
   // Read connected accounts after the page is sent if they are due (at most every 15 minutes); never holds the page.
   const deps = connectorDeps();
@@ -31,17 +46,20 @@ export default async function HomePage() {
   const sections = sectionStatus(profile);
   const done = PROFILE_SECTIONS.filter((s) => sections[s]).length;
   const setup = [
-    { done: done >= 3, label: 'Fill in your brand profile', detail: `${done} of ${PROFILE_SECTIONS.length} sections`, href: '/brand' },
-    { done: d.channels.length > 0, label: 'Connect Instagram', detail: d.channels.length ? `${d.channels.length} connected` : 'Read your real numbers', href: '/channels' },
-    { done: page.published, label: 'Publish your media kit', detail: page.published ? 'Live' : 'Not published', href: '/page' },
+    { done: done >= 3, label: 'Fill in your brand', detail: `${done} of ${PROFILE_SECTIONS.length} sections done`, href: '/brand' },
+    { done: d.channels.length > 0, label: 'Connect Instagram', detail: d.channels.length ? `${d.channels.length} connected` : 'So your numbers are real', href: '/channels' },
+    { done: page.published, label: 'Publish your media kit', detail: page.published ? 'Live' : 'Your link for brands', href: '/page' },
   ];
 
   return (
-    <div className="flex flex-col gap-10">
-      <section className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="display text-4xl font-bold sm:text-5xl">{greeting(new Date())}, {profile.publicName.split(' ')[0]}</h1>
-          <p className="mt-2 text-ink-soft">@{profile.handle}{workspace.role === 'manager' ? ' · you are managing this creator' : ''}</p>
+    <div className="flex flex-col gap-8">
+      <section className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <Avatar src={photo ? `/media/${photo.id}` : null} name={profile.publicName} size={72} live={page.published} />
+          <div>
+            <h1 className="display text-[clamp(2rem,6vw,3.25rem)]">{greeting(new Date())}, {profile.publicName.split(' ')[0]}</h1>
+            <p className="mt-1 text-ink-soft">@{profile.handle}{workspace.role === 'manager' ? ', you are managing this account' : ''}</p>
+          </div>
         </div>
         {d.channels.length > 0 && (
           <form action={refreshNow}>
@@ -50,16 +68,47 @@ export default async function HomePage() {
         )}
       </section>
 
+      <nav aria-label="Your channels" className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
+        <ul className="flex gap-5 pb-1">
+          {d.channels.map((c) => (
+            <li key={c.channel.id}>
+              <Link href="/channels" className="flex w-20 flex-col items-center gap-1.5 text-center">
+                <span className={`grid size-[4.25rem] place-items-center rounded-full p-[3px] ${RING[c.channel.state]}`}>
+                  <span className="display grid size-full place-items-center rounded-full bg-white text-lg text-royal-deep">{SHORT[c.channel.platform]}</span>
+                </span>
+                <span className="w-full truncate text-xs">@{c.channel.username}</span>
+              </Link>
+            </li>
+          ))}
+          <li>
+            <Link href="/page" className="flex w-20 flex-col items-center gap-1.5 text-center">
+              <span className={`grid size-[4.25rem] place-items-center rounded-full p-[3px] ${page.published ? 'bg-spark' : 'bg-line'}`}>
+                <span className="grid size-full place-items-center rounded-full bg-white text-royal-deep"><Icons.kit /></span>
+              </span>
+              <span className="text-xs">{page.published ? 'Kit is live' : 'Media kit'}</span>
+            </Link>
+          </li>
+          <li>
+            <Link href="/channels" className="flex w-20 flex-col items-center gap-1.5 text-center">
+              <span className="grid size-[4.25rem] place-items-center rounded-full border-2 border-dashed border-royal/50 text-royal"><Icons.plus /></span>
+              <span className="text-xs">Add channel</span>
+            </Link>
+          </li>
+        </ul>
+      </nav>
+
       {setup.some((s) => !s.done) && (
         <section aria-labelledby="setup" className="panel">
-          <h2 id="setup" className="display text-xl font-semibold">Get set up</h2>
+          <h2 id="setup" className="display text-2xl">Get set up</h2>
           <ol className="mt-4 grid gap-3 sm:grid-cols-3">
             {setup.map((s, i) => (
               <li key={s.href}>
-                <Link href={s.href} className={`flex h-full flex-col gap-1 rounded-xl p-4 ring-1 ${s.done ? 'bg-glass ring-glass' : 'bg-white ring-glass-deep hover:ring-bay'}`}>
-                  <span className="text-xs font-semibold text-ink-soft">{s.done ? 'Done' : `Step ${i + 1}`}</span>
-                  <span className="font-semibold">{s.label}</span>
-                  <span className="text-sm text-ink-soft">{s.detail}</span>
+                <Link href={s.href} className={`flex h-full items-center gap-3 rounded-tile p-4 ring-1 transition-colors ${s.done ? 'bg-lilac/70 ring-transparent' : 'bg-white/80 ring-line hover:ring-royal'}`}>
+                  <span className={`grid size-9 shrink-0 place-items-center rounded-full text-sm font-bold ${s.done ? 'bg-royal text-white' : 'bg-lilac text-royal-deep'}`}>{s.done ? '✓' : i + 1}</span>
+                  <span className="flex flex-col">
+                    <span className="font-semibold">{s.label}</span>
+                    <span className="text-sm text-ink-soft">{s.detail}</span>
+                  </span>
                 </Link>
               </li>
             ))}
@@ -67,118 +116,116 @@ export default async function HomePage() {
         </section>
       )}
 
-      <section aria-labelledby="audience" className="flex flex-col gap-4">
-        <div className="flex items-baseline justify-between gap-4">
-          <h2 id="audience" className="display text-2xl font-semibold">Audience</h2>
-          <Link href="/channels" className="min-h-11 content-center text-sm font-medium text-bay-deep underline-offset-4 hover:underline">Channels</Link>
-        </div>
-        {d.channels.length === 0 ? (
-          <div className="panel flex flex-col items-start gap-3">
-            <p className="text-ink-soft">No accounts connected, so there are no numbers yet. GenCut never estimates them.</p>
-            <Link href="/channels" className="btn">Connect Instagram</Link>
-          </div>
-        ) : (
-          <>
-            {d.combinedFollowers && d.combinedFollowers.sources.length > 1 && (
-              <div className="panel">
-                <span className="eyebrow">Followers, all platforms</span>
-                <p className="display mt-1 text-4xl font-semibold">{compact(d.combinedFollowers.value)}</p>
-                <p className="mt-1 text-xs text-ink-soft">{d.combinedFollowers.label}.</p>
+      {d.channels.length === 0 ? (
+        <section className="panel flex flex-col items-start gap-3">
+          <h2 className="display text-2xl">No numbers yet</h2>
+          <p className="max-w-[52ch] text-ink-soft">Connect Instagram and your followers, reach and top posts appear here. GenCut never estimates a number it has not read.</p>
+          <Link href="/channels" className="btn">Connect Instagram</Link>
+        </section>
+      ) : (
+        d.channels.map((c) => (
+          <section key={c.channel.id} aria-label={`${PLATFORM_LABELS[c.channel.platform]} @${c.channel.username}`} className="settle grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="panel flex flex-col gap-4 sm:col-span-2 lg:row-span-2">
+              <div className="flex items-center justify-between gap-3">
+                <p className="font-semibold">{PLATFORM_LABELS[c.channel.platform]} <span className="font-normal text-ink-soft">@{c.channel.username}</span></p>
+                <StateBadge state={c.channel.state} />
               </div>
-            )}
-            <ul className="grid gap-4 md:grid-cols-2">
-              {d.channels.map((c) => (
-                <li key={c.channel.id} className="panel flex flex-col gap-5">
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="min-w-0">
-                      <p className="eyebrow">{PLATFORM_LABELS[c.channel.platform]}</p>
-                      <p className="truncate font-semibold">@{c.channel.username}</p>
-                    </div>
-                    <StateBadge state={c.channel.state} />
+              {c.followers ? <FigureTile f={c.followers} big /> : <p className="text-sm text-ink-soft">Not read yet. The first reading arrives within a minute of connecting.</p>}
+              <Sparkline points={c.followerSeries} label={`Followers on ${PLATFORM_LABELS[c.channel.platform]}, one reading per day`} />
+              <div className="mt-auto grid grid-cols-2 gap-3">
+                {[{ label: 'Last 7 days', g: c.growth7 }, { label: 'Last 30 days', g: c.growth30 }].map(({ label, g }) => (
+                  <div key={label} className="tile">
+                    <span className="eyebrow">{label}</span>
+                    {g ? (
+                      <>
+                        <p className={`display mt-1 text-[1.75rem] ${g.change < 0 ? 'text-[#c0264f]' : 'text-royal'}`}>{signed(g.change)}</p>
+                        <p className="text-xs text-ink-soft">From {n(g.from)} on {day(g.fromAt)}</p>
+                      </>
+                    ) : (
+                      <p className="mt-1 text-sm text-ink-soft">{c.historyStarts ? `Needs more history; readings start ${day(c.historyStarts)}` : 'No readings yet'}</p>
+                    )}
                   </div>
-                  {c.followers ? <FigureTile f={c.followers} big /> : <p className="text-sm text-ink-soft">Not read yet. The first reading appears within a minute of connecting.</p>}
-                  <Sparkline points={c.followerSeries} label={`Followers on ${PLATFORM_LABELS[c.channel.platform]}, one reading per day`} />
-                  <div className="grid grid-cols-2 gap-4 border-t border-glass pt-4">
-                    {[{ label: '7 days', g: c.growth7 }, { label: '30 days', g: c.growth30 }].map(({ label, g }) => (
-                      <div key={label} className="flex flex-col gap-1">
-                        <span className="eyebrow">Change, {label}</span>
-                        {g ? (
-                          <>
-                            <span className={`display text-2xl font-semibold ${g.change < 0 ? 'text-[#b42345]' : ''}`}>{signed(g.change)}</span>
-                            <span className="text-xs text-ink-soft">{n(g.from)} on {day(g.fromAt)} → {n(g.to)}</span>
-                          </>
-                        ) : (
-                          <span className="text-sm text-ink-soft">{c.historyStarts ? `Needs more history (from ${day(c.historyStarts)})` : 'No readings yet'}</span>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                  {c.week.length > 0 && (
-                    <div className="grid grid-cols-2 gap-4 border-t border-glass pt-4">
-                      {c.week.map((f) => <FigureTile key={f.metric} f={f} />)}
-                    </div>
-                  )}
-                  {c.channel.lastSyncError && <p className="text-xs text-ink-soft">Last check: {c.channel.lastSyncError}</p>}
-                </li>
-              ))}
-            </ul>
-          </>
-        )}
-      </section>
+                ))}
+              </div>
+            </div>
+            {c.week.map((f) => (
+              <div key={f.metric} className="panel">
+                <FigureTile f={f} />
+              </div>
+            ))}
+            {c.channel.lastSyncError && <p className="text-xs text-ink-soft sm:col-span-2 lg:col-span-4">Last check: {c.channel.lastSyncError}</p>}
+          </section>
+        ))
+      )}
+
+      {d.combinedFollowers && d.combinedFollowers.sources.length > 1 && (
+        <p className="tile text-sm">{n(d.combinedFollowers.value)} followers in total. {d.combinedFollowers.label}.</p>
+      )}
 
       <AskBox />
 
       <section aria-labelledby="top" className="flex flex-col gap-4">
         <div className="flex items-baseline justify-between gap-4">
-          <h2 id="top" className="display text-2xl font-semibold">Top content</h2>
-          <Link href="/analytics" className="min-h-11 content-center text-sm font-medium text-bay-deep underline-offset-4 hover:underline">All posts</Link>
+          <h2 id="top" className="display text-[1.75rem]">Top posts</h2>
+          <Link href="/analytics" className="min-h-11 content-center text-sm font-semibold text-royal-deep underline-offset-4 hover:underline">All posts</Link>
         </div>
         {d.topContent.length === 0 ? (
           <p className="text-ink-soft">No post readings yet.</p>
         ) : (
-          <ol className="grid gap-3 md:grid-cols-3">
-            {d.topContent.slice(0, 3).map((c, i) => {
+          <ol className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+            {d.topContent.slice(0, 4).map((c, i) => {
               const f = c.figures.find((x) => x.metric === c.rankedBy);
+              const tile = (
+                <>
+                  <span className="text-xs font-semibold text-royal-deep">#{i + 1}{c.publishedAt ? `, ${day(c.publishedAt)}` : ''}</span>
+                  <span className="line-clamp-4 text-[0.95rem] leading-snug">{c.caption ?? 'No caption'}</span>
+                  {f && f.value !== null && (
+                    <span className="mt-auto">
+                      <span className="display block text-2xl">{n(f.value)}</span>
+                      <span className="text-xs text-ink-soft">{f.metric === 'views' ? 'views' : f.metric === 'interactions' ? 'interactions' : 'likes'} since posted</span>
+                    </span>
+                  )}
+                </>
+              );
               return (
-                <li key={c.id} className="panel flex flex-col gap-3">
-                  <span className="eyebrow">#{i + 1} · {PLATFORM_LABELS[c.platform]}{c.publishedAt ? ` · ${day(c.publishedAt)}` : ''}</span>
-                  <p className="line-clamp-3 text-[0.95rem]">{c.caption ?? 'No caption'}</p>
-                  {f && <FigureTile f={f} />}
-                  {c.permalink && <a href={c.permalink} target="_blank" rel="noopener noreferrer" className="mt-auto text-sm font-medium text-bay-deep underline-offset-4 hover:underline">Open on {PLATFORM_LABELS[c.platform]} ↗</a>}
+                <li key={c.id}>
+                  {c.permalink ? (
+                    <a href={c.permalink} target="_blank" rel="noopener noreferrer" className="tile flex aspect-square flex-col gap-2 bg-gradient-to-br from-white/80 to-lilac/80 transition-transform hover:-translate-y-0.5" aria-label={`Post ${i + 1}, open on ${PLATFORM_LABELS[c.platform]}`}>{tile}</a>
+                  ) : (
+                    <div className="tile flex aspect-square flex-col gap-2">{tile}</div>
+                  )}
                 </li>
               );
             })}
           </ol>
         )}
+        {d.topContent.length > 0 && <p className="text-xs text-ink-soft">Ranked by views where Instagram reports them, then interactions, then likes.</p>}
       </section>
 
-      <section aria-labelledby="kit" className="grid gap-4 md:grid-cols-3">
-        <h2 id="kit" className="sr-only">Media kit and business</h2>
+      <section aria-label="Media kit and business" className="grid gap-3 md:grid-cols-3">
         <div className="panel flex flex-col gap-2">
-          <span className="eyebrow">Media kit visits</span>
-          <span className="display text-3xl font-semibold">{n(d.visits.last7)}</span>
-          <span className="text-xs text-ink-soft">Last 7 days · GenCut · {n(d.visits.last30)} in 30 days</span>
+          <span className="eyebrow">Media kit visits, last 7 days</span>
+          <span className="display text-[2.5rem]">{n(d.visits.last7)}</span>
+          <span className="text-xs text-ink-soft">{n(d.visits.last30)} in the last 30 days, counted by GenCut</span>
           {d.visits.bySource.length > 0 && (
-            <ul className="mt-2 flex flex-col gap-1 text-sm">
-              {d.visits.bySource.map((s) => (
-                <li key={s.source} className="flex justify-between gap-2"><span className="truncate">{s.source}</span><span className="font-medium">{n(s.visits)}</span></li>
-              ))}
+            <ul className="mt-2 flex flex-wrap gap-1.5">
+              {d.visits.bySource.map((s) => <li key={s.source} className="chip">{s.source} {n(s.visits)}</li>)}
             </ul>
           )}
-          {!page.published && <Link href="/page" className="mt-auto text-sm font-medium text-bay-deep">Publish your media kit →</Link>}
+          {!page.published && <Link href="/page" className="mt-auto pt-2 text-sm font-semibold text-royal-deep">Publish your media kit</Link>}
         </div>
-        <Link href="/inquiries" className="panel flex flex-col gap-2 hover:border-ink-soft/40">
+        <Link href="/inquiries" className="panel flex flex-col gap-2 transition-colors hover:bg-white/80">
           <span className="eyebrow">Inquiries</span>
-          <span className="display text-3xl font-semibold">{n(d.inquiries.unread)} <span className="text-base font-normal text-ink-soft">unread</span></span>
-          <span className="text-xs text-ink-soft">{n(d.inquiries.last30)} in the last 30 days · GenCut</span>
+          <span className="display text-[2.5rem]">{n(d.inquiries.unread)} <span className="font-sans text-base font-normal tracking-normal text-ink-soft">unread</span></span>
+          <span className="text-xs text-ink-soft">{n(d.inquiries.last30)} in the last 30 days</span>
         </Link>
         <div className="panel flex flex-col gap-2">
           <span className="eyebrow">Partnerships and earnings</span>
-          <span className="text-[0.95rem] text-ink-soft">Not set up yet. The deal pipeline arrives in a later release; nothing here is estimated.</span>
+          <span className="text-[0.95rem] text-ink-soft">Not set up yet. The deal pipeline arrives in a later release, and nothing here is estimated.</span>
         </div>
       </section>
 
-      <p className="text-xs text-ink-soft">Numbers are read from each platform's official API and shown with their period and the time GenCut read them. Last page load {when(new Date())}.</p>
+      <p className="text-xs text-ink-soft">Numbers come from each platform's official API, with their period and the time GenCut read them. Page loaded {when(new Date())}.</p>
     </div>
   );
 }

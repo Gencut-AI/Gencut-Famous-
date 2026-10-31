@@ -327,3 +327,10 @@ export async function setInquiryStatus(sql: Sql, ctx: RequestContext, workspaceI
     await recordAudit(tx, { workspaceId, actorType: 'user', actorId: ctx.userId, via: ctx.via, entityType: 'inquiry', entityId: id, action: 'state_change', fromState: before.status, toState: status });
   });
 }
+
+/** Unread inquiries, for the badge in the navigation. */
+export async function countUnreadInquiries(db: Db, ctx: RequestContext, workspaceId: string): Promise<number> {
+  await requireCapability(db, ctx, workspaceId, 'view');
+  const [r] = await db<{ n: number }[]>`SELECT count(*)::int AS n FROM creator_inquiries WHERE workspace_id = ${workspaceId} AND status = 'new'`;
+  return r?.n ?? 0;
+}

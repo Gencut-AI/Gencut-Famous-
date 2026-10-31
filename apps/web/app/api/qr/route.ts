@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
   if (!/^[a-z0-9._]{3,30}$/.test(handle)) return new Response('Bad handle', { status: 400 });
   const src = normalizeReferral(request.nextUrl.searchParams.get('src'));
   const url = `${await publicBase()}/@${handle}${src ? `?src=${src}` : ''}`;
-  const svg = await QRCode.toString(url, { type: 'svg', margin: 2, color: { dark: '#10242b', light: '#ffffff' }, errorCorrectionLevel: 'M' });
+  const svg = await QRCode.toString(url, { type: 'svg', margin: 2, color: { dark: '#1b1035', light: '#ffffff' }, errorCorrectionLevel: 'M' });
   return new Response(svg, {
     headers: {
       'content-type': 'image/svg+xml',

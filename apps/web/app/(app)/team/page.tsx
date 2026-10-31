@@ -24,14 +24,14 @@ export default async function TeamPage() {
         <p className="mt-2 max-w-[62ch] text-ink-soft">Managers can edit the brand profile, connect accounts and publish the media kit. Only the creator can change who has access or delete data.</p>
       </header>
       <section className="panel flex flex-col gap-4">
-        <ul className="flex flex-col divide-y divide-glass">
+        <ul className="flex flex-col divide-y divide-lilac">
           {team.map((t) => (
             <li key={t.userId} className="flex items-center justify-between gap-3 py-3">
               <span className="min-w-0 truncate">{t.email}{t.userId === ctx.userId ? ' (you)' : ''}</span>
               <span className="flex items-center gap-3">
                 <span className="text-sm text-ink-soft">{t.role === 'owner' ? 'Creator' : 'Manager'}</span>
                 {owner && t.role === 'manager' && (
-                  <form action={remove}><input type="hidden" name="userId" value={t.userId} /><button type="submit" className="min-h-10 text-sm text-[#b42345]">Remove</button></form>
+                  <form action={remove}><input type="hidden" name="userId" value={t.userId} /><button type="submit" className="min-h-10 text-sm text-[#c0264f]">Remove</button></form>
                 )}
               </span>
             </li>
@@ -39,19 +39,19 @@ export default async function TeamPage() {
         </ul>
         {owner && <InviteForm />}
         {owner && open.length > 0 && (
-          <div className="flex flex-col gap-2 border-t border-glass pt-4">
+          <div className="flex flex-col gap-2 border-t border-lilac pt-4">
             <h2 className="text-sm font-semibold">Open invitations</h2>
             {open.map((i) => (
               <div key={i.id} className="flex items-center justify-between gap-3 text-sm">
-                <span>{i.email} · expires {day(i.expiresAt)}</span>
-                <form action={withdraw}><input type="hidden" name="id" value={i.id} /><button type="submit" className="min-h-10 text-ink-soft hover:text-[#b42345]">Withdraw</button></form>
+                <span>{i.email}, expires {day(i.expiresAt)}</span>
+                <form action={withdraw}><input type="hidden" name="id" value={i.id} /><button type="submit" className="min-h-10 text-ink-soft hover:text-[#c0264f]">Withdraw</button></form>
               </div>
             ))}
           </div>
         )}
       </section>
       {!ownsOne && (
-        <p className="text-sm text-ink-soft">Are you a creator yourself? <Link href="/onboarding?another=1" className="font-medium text-bay-deep">Set up your own workspace</Link>.</p>
+        <p className="text-sm text-ink-soft">Are you a creator yourself? <Link href="/onboarding?another=1" className="font-medium text-royal-deep">Set up your own workspace</Link>.</p>
       )}
     </div>
   );

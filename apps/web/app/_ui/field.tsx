@@ -20,6 +20,6 @@ export function Field(props: { id: string; label: string; hint?: string | undefi
 
 export function FormStatus({ state }: { state: { status: string; message?: string } }) {
   if (state.status === 'error') return <p role="alert" className="error-text">{state.message}</p>;
-  if (state.status === 'saved') return <p role="status" className="text-sm font-medium text-bay-deep">{state.message ?? 'Saved.'}</p>;
+  if (state.status === 'saved') return <p role="status" className="text-sm font-medium text-royal-deep">{state.message ?? 'Saved.'}</p>;
   return null;
 }

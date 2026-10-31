@@ -13,16 +13,16 @@ export default async function OpenGraphImage({ params }: { params: Promise<{ han
   const followers = p?.metrics.find((m) => m.metric === 'followers' && m.value !== null);
   return new ImageResponse(
     (
-      <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', background: '#fafbfa', padding: 72, color: '#10242b' }}>
-        <div style={{ width: 120, height: 12, borderRadius: 6, background: p?.accent ?? '#0f6e73' }} />
+      <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', background: 'linear-gradient(135deg, #f3efff 0%, #e4d9ff 100%)', padding: 72, color: '#1b1035' }}>
+        <div style={{ width: 120, height: 12, borderRadius: 6, background: '#5b2be0' }} />
         <div style={{ display: 'flex', flexDirection: 'column' }}>
-          <div style={{ fontSize: 88, fontWeight: 700, letterSpacing: -2 }}>{p?.publicName ?? 'GenCut for Creators'}</div>
-          <div style={{ fontSize: 36, color: '#3d555c', marginTop: 8 }}>{p ? `@${p.handle}` : ''}</div>
+          <div style={{ fontSize: 88, fontWeight: 700, letterSpacing: -2 }}>{p?.publicName ?? 'GenCut Famous'}</div>
+          <div style={{ fontSize: 36, color: '#5d5279', marginTop: 8 }}>{p ? `@${p.handle}` : ''}</div>
           {p?.headline ? <div style={{ fontSize: 40, marginTop: 28 }}>{p.headline.slice(0, 90)}</div> : null}
         </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', fontSize: 30, color: '#3d555c' }}>
-          <div style={{ display: 'flex' }}>{followers?.value != null ? `${compact(followers.value)} followers · verified via ${followers.source === 'instagram' ? 'Instagram' : followers.source}` : 'Media kit'}</div>
-          <div style={{ display: 'flex', color: '#0a5357', fontWeight: 700 }}>GenCut for Creators</div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', fontSize: 30, color: '#5d5279' }}>
+          <div style={{ display: 'flex' }}>{followers?.value != null ? `${compact(followers.value)} followers, verified via ${followers.source === 'instagram' ? 'Instagram' : followers.source}` : 'Media kit'}</div>
+          <div style={{ display: 'flex', color: '#5b2be0', fontWeight: 700 }}>GenCut Famous</div>
         </div>
       </div>
     ),

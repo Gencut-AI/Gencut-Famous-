@@ -30,7 +30,7 @@ const optionalText = (max: number) =>
 export const onboardingInput = z.object({
   publicName: z.string().trim().min(1, 'Enter the name you publish under.').max(80),
   handle: z.string(),
-  adult: z.literal(true, { error: 'GenCut for Creators is for creators aged 18 or older in this version.' }),
+  adult: z.literal(true, { error: 'GenCut Famous is for creators aged 18 or older in this version.' }),
 });
 
 /**

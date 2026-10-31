@@ -4,7 +4,7 @@ Each entry: date, decision, why, and what would make us revisit it. Newest last.
 
 ## D-001 · 2026-10-31 · A separate app, built from GenCut Properties' foundations
 
-**Decision (Paul, 31 Oct):** GenCut for Creators is its own repository (`Gencut-AI/gencut-creators`), Supabase project ("GenCut Creators") and Netlify site, not a vertical inside GenCut Properties. The new codebase copies the proven foundations — monorepo layout, pure `core` package, SQL-first migrations and runner, service-layer authorization, append-only audit log, ModelRouter, CI with gitleaks, repository lint, Supabase email-link auth plumbing, Netlify function bundler — and the GenCut design tokens and brand mark. No real-estate code was copied.
+**Decision (Paul, 31 Oct):** GenCut Famous is its own repository (`Gencut-AI/Gencut-Famous-`), Supabase project ("GenCut Creators") and Netlify site, not a vertical inside GenCut Properties. The new codebase copies the proven foundations — monorepo layout, pure `core` package, SQL-first migrations and runner, service-layer authorization, append-only audit log, ModelRouter, CI with gitleaks, repository lint, Supabase email-link auth plumbing, Netlify function bundler — and the engineering rules. No real-estate code was copied; the visual identity is GenCut Famous's own (D-009).
 **Why:** Paul wants the two products independent for now; a master info website will link both. Starting from the same foundations keeps the engineering rules identical and a later merge possible.
 **Revisit if:** the two products need shared accounts or shared data (one sign-in across both), or duplicated foundation code starts to drift.
 
@@ -46,3 +46,9 @@ Each entry: date, decision, why, and what would make us revisit it. Newest last.
 
 **Decision:** the web assistant answers seven read-only questions (week, top content, followers, connections, profile link, inquiries, help) from stored records with source and date. A deterministic parser runs first; if `ANTHROPIC_API_KEY` is set, the fast model may choose one of those commands (JSON only), and every call is logged in `model_runs`. Answers are built from records, so they cannot contain a number GenCut did not read. WhatsApp is not connected in this app yet.
 **Why:** directive M1.5 and "do not fabricate analytics".
+
+## D-009 · 2026-10-31 · GenCut Famous: royal purple, translucent grids, a social-app shape
+
+**Decision (Paul, 31 Oct):** the product is named GenCut Famous and lives in `Gencut-AI/Gencut-Famous-`. It has its own identity: royal purple `#5B2BE0` for actions, deep violet `#3A1A9E`, aubergine ink `#1B1035`, lavender haze `#F3EFFF` page, frosted-glass surfaces over a faint fixed violet grid, hot pink `#FF4F9A` only for live moments (a published kit, unread inquiries). One typeface, Bricolage Grotesque (self-hosted, optical sizes), sentence case. The layout borrows the shape of a social app — a left rail on desktop and an icon tab bar on phones, channel rings on Home, a profile header with a stats row and square post tiles on the media kit — without copying any platform's design: rings are solid purple, the mark and icons are drawn for GenCut.
+**Why:** Paul asked for a sleeker, social-app feel. Imitating Instagram's interface would risk confusion with Meta's product and Meta's App Review, which the Instagram connection depends on.
+**Revisit if:** a brand designer delivers a fuller identity.

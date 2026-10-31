@@ -12,7 +12,7 @@ const TONE_LABELS: Record<(typeof TONES)[number], string> = {
   warm: 'Warm', playful: 'Playful', bold: 'Bold', expert: 'Expert', calm: 'Calm', luxurious: 'Luxurious', raw: 'Raw and unfiltered',
 };
 
-const chip = 'flex min-h-10 cursor-pointer items-center gap-2 rounded-full bg-white px-3 text-sm ring-1 ring-glass-deep has-[:checked]:bg-glass has-[:checked]:text-bay-deep has-[:checked]:ring-bay';
+const chip = 'flex min-h-10 cursor-pointer items-center gap-2 rounded-full bg-white px-3 text-sm ring-1 ring-line has-[:checked]:bg-lilac has-[:checked]:text-royal-deep has-[:checked]:ring-royal';
 
 export function IdentityForm({ p }: { p: CreatorProfile }) {
   return (
@@ -106,14 +106,14 @@ export function VisualForm({ p }: { p: CreatorProfile }) {
       {(e) => (
         <div className="grid gap-5 sm:grid-cols-2">
           <Field id="colors" label="Brand colors" hint="Hex codes, comma-separated. The first is your media kit accent." error={e.colors}>
-            <input id="colors" name="colors" defaultValue={p.colors.join(', ')} className="field" placeholder="#0f6e73, #ef5f82" aria-invalid={Boolean(e.colors)} />
+            <input id="colors" name="colors" defaultValue={p.colors.join(', ')} className="field" placeholder="#5b2be0, #ff4f9a" aria-invalid={Boolean(e.colors)} />
           </Field>
           <Field id="fonts" label="Fonts" hint="Names only, up to 3." error={e.fonts}>
             <input id="fonts" name="fonts" defaultValue={p.fonts.join(', ')} className="field" />
           </Field>
           {p.colors.length > 0 && (
             <ul className="flex gap-2 sm:col-span-2" aria-label="Your colors">
-              {p.colors.map((c) => <li key={c} className="size-10 rounded-lg ring-1 ring-glass-deep" style={{ background: c }} title={c} />)}
+              {p.colors.map((c) => <li key={c} className="size-10 rounded-lg ring-1 ring-line" style={{ background: c }} title={c} />)}
             </ul>
           )}
         </div>

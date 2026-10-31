@@ -26,13 +26,13 @@ export default async function InquiriesPage() {
       ) : (
         <ul className="flex flex-col gap-4">
           {items.map((i) => (
-            <li key={i.id} className={`panel flex flex-col gap-3 ${i.status === 'new' ? 'border-bay' : ''}`}>
+            <li key={i.id} className={`panel flex flex-col gap-3 ${i.status === 'new' ? 'border-royal' : ''}`}>
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <p className="font-semibold">
-                  {i.status === 'new' && <span className="rec-dot mr-2 inline-block size-2 rounded-full bg-flamingo align-middle" aria-label="Unread" />}
-                  {i.name}{i.organization ? <span className="font-normal text-ink-soft"> · {i.organization}</span> : null}
+                  {i.status === 'new' && <span className="rec-dot mr-2 inline-block size-2 rounded-full bg-spark align-middle" aria-label="Unread" />}
+                  {i.name}{i.organization ? <span className="font-normal text-ink-soft">, {i.organization}</span> : null}
                 </p>
-                <span className="text-xs text-ink-soft">{INQUIRY_KIND_LABELS[i.kind]} · {when(i.createdAt)}{i.src ? ` · via ${i.src}` : ''}</span>
+                <span className="text-xs text-ink-soft">{INQUIRY_KIND_LABELS[i.kind]}, {when(i.createdAt)}{i.src ? `, via ${i.src}` : ''}</span>
               </div>
               <p className="whitespace-pre-line text-[0.95rem]">{i.message}</p>
               <div className="flex flex-wrap items-center gap-2">

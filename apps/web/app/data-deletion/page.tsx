@@ -12,7 +12,7 @@ export default async function DataDeletionPage({ searchParams }: { searchParams:
   return (
     <LegalPage title="Data deletion">
       {code && (
-        <p role="status" className="rounded-xl bg-glass p-4">
+        <p role="status" className="rounded-xl bg-lilac p-4">
           {status ? `Request ${code}: completed ${status.completedAt.toUTCString()}. ${status.channelsDeleted} connected account${status.channelsDeleted === 1 ? '' : 's'} and everything read from ${status.channelsDeleted === 1 ? 'it' : 'them'} were deleted.` : `We have no deletion request with the code ${code}.`}
         </p>
       )}

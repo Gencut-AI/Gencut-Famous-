@@ -1,10 +1,10 @@
-# Netlify build for GenCut for Creators (pnpm monorepo).
+# Netlify build for GenCut Famous (pnpm monorepo).
 # Netlify UI → Project configuration → Build & deploy → Build settings:
 #   Base directory:    (empty — repository root)
 #   Package directory: apps/web
 # Next.js is deployed by Netlify's built-in OpenNext runtime; no plugin pin.
 [build]
-  command = "pnpm --filter @gencut/creators-web build"
+  command = "pnpm --filter @gencut/famous-web build"
   # Relative to the base directory (the repository root).
   publish = "apps/web/.next"
 
