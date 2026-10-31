@@ -29,7 +29,7 @@ describe('public profile, visits and inquiries', () => {
   before(async () => {
     h = await harness();
     ws = await creator(h.sql, u, 'maya.public');
-    await updateProfile(h.sql, u, ws, { bio: 'Weeknight recipes.', niches: ['food'], rateCard: [{ deliverable: 'Reel', priceUsd: 4000 }], brandsAvoided: 'Secret Rival', legalName: 'Maya Q. Rivera' });
+    await updateProfile(h.sql, u, ws, { bio: 'Weeknight recipes.', niches: ['food'], rateCard: [{ deliverable: 'Private Reel Rate', priceUsd: 987654 }], brandsAvoided: 'Secret Rival', legalName: 'Maya Q. Rivera' });
     const ig = new FakeInstagram();
     ig.acct = { ...ig.acct, userId: '1784140000777', username: 'maya.public' };
     ig.media = [{ id: 'p1', caption: 'Ceviche', mediaType: 'VIDEO', productType: 'REELS', permalink: 'https://www.instagram.com/reel/p1/', timestamp: new Date('2026-10-20T00:00:00Z'), thumbnailUrl: null, likeCount: 10, commentsCount: 1 }];
@@ -56,7 +56,7 @@ describe('public profile, visits and inquiries', () => {
     assert.equal(p.content.length, 1);
     assert.deepEqual(p.links.map((l) => l.url), ['https://www.instagram.com/maya.public/']);
     const json = JSON.stringify(p);
-    for (const secret of ['4000', 'Secret Rival', 'Maya Q. Rivera']) assert.ok(!json.includes(secret), `leaked ${secret}`);
+    for (const secret of ['987654', 'Private Reel Rate', 'rateCard', 'Secret Rival', 'Maya Q. Rivera']) assert.ok(!json.includes(secret), `leaked ${secret}`);
   });
 
   it('counts a visitor once a day, keeps the source, skips bots, and stores no address', async () => {
