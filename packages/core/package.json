@@ -1,0 +1,10 @@
+{
+  "name": "@gencut/core",
+  "private": true,
+  "version": "0.1.0",
+  "description": "GenCut for Creators domain rules: creator profiles, connector manifests, metric definitions, the assistant. Pure, no I/O, no dependencies.",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  }
+}
