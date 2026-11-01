@@ -1,7 +1,9 @@
 'use server';
 
 import { headers } from 'next/headers';
+import { redirect } from 'next/navigation';
 import { z } from 'zod';
+import { normalizeOtpCode } from '../../lib/otp.ts';
 import { safeNextPath } from '../../lib/safe-redirect.ts';
 import { signInRedirectOrigin } from '../../lib/site-url.ts';
 import { createSupabaseServerClient } from '../../lib/supabase/server.ts';
@@ -42,4 +44,29 @@ export async function sendSignInLink(_prev: SignInState, form: FormData): Promis
     return { status: 'error', message, email: parsed.data };
   }
   return { status: 'sent', email: parsed.data };
+}
+
+export type CodeState = { status: 'idle' } | { status: 'error'; message: string };
+
+/**
+ * Signs in with the code from the email. Works on any device, unlike the
+ * link, so someone who opens the email on their phone can still sign in on
+ * their laptop.
+ */
+export async function verifySignInCode(_prev: CodeState, form: FormData): Promise<CodeState> {
+  const address = email.safeParse(String(form.get('email') ?? '').trim().toLowerCase());
+  const code = normalizeOtpCode(String(form.get('code') ?? ''));
+  if (!address.success) return { status: 'error', message: 'Request a new code: the email address is missing.' };
+  if (!code) return { status: 'error', message: 'Enter the code from the email. It is only digits.' };
+
+  const supabase = await createSupabaseServerClient();
+  const { error } = await supabase.auth.verifyOtp({ email: address.data, token: code, type: 'email' });
+  if (error) {
+    const message =
+      error.status === 429
+        ? 'Too many attempts. Wait a few minutes and try again.'
+        : 'That code didn\'t work. It may have expired or been replaced by a newer email. Use the code from the latest email.';
+    return { status: 'error', message };
+  }
+  redirect(safeNextPath(String(form.get('next') ?? '')));
 }

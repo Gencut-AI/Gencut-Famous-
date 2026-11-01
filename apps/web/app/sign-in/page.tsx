@@ -21,10 +21,10 @@ export default async function SignInPage({ searchParams }: { searchParams: Promi
       </header>
       <section className="panel mt-8">
         <h1 className="display text-4xl font-bold">Sign in</h1>
-        <p className="mt-3 text-ink-soft">We'll email you a link. No password to remember.</p>
+        <p className="mt-3 text-ink-soft">We'll email you a link and a code. No password to remember.</p>
         {error === 'link' && (
           <p className="mt-4 rounded-xl bg-[#ffe3ee] p-4 text-sm text-[#9c1747]" role="alert">
-            That sign-in link didn't work. It may have expired, been used already, or been opened in a different browser from the one you requested it in. Request a new one below and open it on this device.
+            That sign-in link didn't work. It may have expired or been used already. Request a new email below, then tap its link or type its code here.
           </p>
         )}
         <div className="mt-8">
