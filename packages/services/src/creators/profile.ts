@@ -17,6 +17,7 @@ import type { RequestContext } from '../context.ts';
 import type { Db, Sql } from '../db.ts';
 import { ServiceError } from '../errors.ts';
 import { requireCapability } from '../membership.ts';
+import { attributeSignup } from './referrals.ts';
 
 function invalid(error: z.ZodError): ServiceError {
   const fields: Record<string, string> = {};
@@ -37,7 +38,7 @@ export const onboardingInput = z.object({
  * Start a creator: one workspace, owned by the signed-in user, with the two
  * required profile fields. Everything else is optional and comes later.
  */
-export async function createCreator(sql: Sql, ctx: RequestContext, input: unknown): Promise<string> {
+export async function createCreator(sql: Sql, ctx: RequestContext, input: unknown, opts: { referralCode?: string | null } = {}): Promise<string> {
   const parsed = onboardingInput.safeParse(input);
   if (!parsed.success) throw invalid(parsed.error);
   const handle = validateHandle(parsed.data.handle);
@@ -54,6 +55,8 @@ export async function createCreator(sql: Sql, ctx: RequestContext, input: unknow
       VALUES (${ws.id}, ${parsed.data.publicName}, ${handle.value}, now(), ${ctx.userId})
     `;
     await tx`INSERT INTO profile_pages (workspace_id) VALUES (${ws.id})`;
+    await tx`INSERT INTO referral_codes (workspace_id, code) VALUES (${ws.id}, ${handle.value}) ON CONFLICT DO NOTHING`;
+    if (opts.referralCode) await attributeSignup(tx, ws.id, opts.referralCode, ctx);
     const actor = { workspaceId: ws.id, actorType: 'user', actorId: ctx.userId, via: ctx.via } as const;
     await recordAudit(tx, { ...actor, entityType: 'workspace', entityId: ws.id, action: 'created' });
     await recordAudit(tx, { ...actor, entityType: 'membership', entityId: ctx.userId, action: 'created', toState: 'owner' });

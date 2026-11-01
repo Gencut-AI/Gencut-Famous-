@@ -1,9 +1,9 @@
 import { type ConnectionState, PLATFORM_LABELS, type Platform, PROFILE_SECTIONS, sectionStatus } from '@gencut/core';
-import { getCreatorProfile, getDashboard, getPageSettings, listMedia, syncWorkspace } from '@gencut/services';
+import { getCreatorProfile, getDashboard, getPageSettings, getReferralOverview, listMedia, syncWorkspace } from '@gencut/services';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { after } from 'next/server';
-import { connectorDeps } from '../../../lib/connectors.ts';
+import { connectorDeps, publicBase } from '../../../lib/connectors.ts';
 import { db } from '../../../lib/db.ts';
 import { day, n, signed, when } from '../../../lib/format.ts';
 import { requireSession } from '../../../lib/session.ts';
@@ -11,6 +11,7 @@ import { Avatar } from '../../_ui/avatar.tsx';
 import { FigureTile, Sparkline } from '../../_ui/figure.tsx';
 import { Icons } from '../../_ui/icons.tsx';
 import { StateBadge } from '../../_ui/state-badge.tsx';
+import { CopyButton } from '../page/copy-button.tsx';
 import { refreshNow } from './actions.ts';
 import { AskBox } from './ask-box.tsx';
 
@@ -36,7 +37,8 @@ const RING: Record<ConnectionState, string> = {
 export default async function HomePage() {
   const { ctx, workspace } = await requireSession();
   const ws = workspace.workspaceId;
-  const [profile, d, page, media] = await Promise.all([getCreatorProfile(db(), ctx, ws), getDashboard(db(), ctx, ws), getPageSettings(db(), ctx, ws), listMedia(db(), ctx, ws)]);
+  const [profile, d, page, media, ref] = await Promise.all([getCreatorProfile(db(), ctx, ws), getDashboard(db(), ctx, ws), getPageSettings(db(), ctx, ws), listMedia(db(), ctx, ws), getReferralOverview(db(), ctx, ws)]);
+  const joinLink = `${await publicBase()}/join/${ref.code}`;
   const photo = media.find((m) => m.kind === 'profile_photo');
 
   // Read connected accounts after the page is sent if they are due (at most every 15 minutes); never holds the page.
@@ -96,6 +98,22 @@ export default async function HomePage() {
           </li>
         </ul>
       </nav>
+
+      <section aria-labelledby="invite" className="panel flex flex-col gap-4 bg-gradient-to-br from-white/75 to-lilac/80">
+        <div className="flex flex-wrap items-baseline justify-between gap-3">
+          <h2 id="invite" className="display text-2xl">Invite creators</h2>
+          <Link href="/referrals" className="text-sm font-semibold text-royal-deep underline-offset-4 hover:underline">See your results</Link>
+        </div>
+        <div className="flex gap-2">
+          <input readOnly value={joinLink} className="field font-semibold text-royal-deep" aria-label="Your invite link" />
+          <CopyButton text={joinLink} />
+        </div>
+        <dl className="grid grid-cols-3 gap-2 text-center">
+          {[{ k: 'Visits', v: ref.visits30 }, { k: 'Leads', v: ref.leads.length }, { k: 'Joined', v: ref.signups.length }].map((x) => (
+            <div key={x.k} className="tile p-3"><dd className="display text-2xl">{n(x.v)}</dd><dt className="text-xs text-ink-soft">{x.k}{x.k === 'Visits' ? ', 30 days' : ''}</dt></div>
+          ))}
+        </dl>
+      </section>
 
       {setup.some((s) => !s.done) && (
         <section aria-labelledby="setup" className="panel">

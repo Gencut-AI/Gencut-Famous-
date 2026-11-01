@@ -1,6 +1,6 @@
 # Product status
 
-Status labels follow the directive (§14): LIVE · IMPLEMENTED BUT NOT YET VERIFIED · PROTOTYPE · BLOCKED · IN DEVELOPMENT · ROADMAP. As of 31 Oct 2026 nothing is deployed, so nothing is LIVE.
+Status labels follow the directive (§14): LIVE · IMPLEMENTED BUT NOT YET VERIFIED · PROTOTYPE · BLOCKED · IN DEVELOPMENT · ROADMAP. Deployed at gencutfamous.netlify.app since 1 Nov 2026; rows say what has been checked live.
 
 | Capability | Status | Notes |
 | --- | --- | --- |
@@ -12,6 +12,7 @@ Status labels follow the directive (§14): LIVE · IMPLEMENTED BUT NOT YET VERIF
 | Meta deauthorize and data-deletion callbacks | IMPLEMENTED BUT NOT YET VERIFIED | URLs to register in the Meta app. |
 | Public media kit `/@handle`, SEO, QR, tagged links, visit counts | IMPLEMENTED BUT NOT YET VERIFIED | Rendered locally at 390 and 1440 px. Domain not attached. |
 | Inquiries with stored consent | IMPLEMENTED BUT NOT YET VERIFIED | GenCut does not email the creator about new inquiries yet. |
+| Referral links: join page, visit and lead tracking, sign-up credit, Referrals dashboard, staff lead list | IMPLEMENTED BUT NOT YET VERIFIED | Tested in services and rendered at 390 and 1440 px; staff page needs `GENCUT_ADMIN_EMAILS`. |
 | Assistant on the web (read-only) | IMPLEMENTED BUT NOT YET VERIFIED | |
 | Privacy, terms, data deletion pages | PROTOTYPE | Engineering drafts; counsel review needed. |
 | Assistant over WhatsApp | ROADMAP | Needs this app's own WhatsApp number or a shared service. |

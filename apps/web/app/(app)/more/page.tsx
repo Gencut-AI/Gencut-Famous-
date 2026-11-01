@@ -5,6 +5,7 @@ import { requireSession } from '../../../lib/session.ts';
 export const metadata: Metadata = { title: 'More' };
 
 const LINKS = [
+  { href: '/channels', label: 'Channels', body: 'Connect Instagram and see what each connection can do.' },
   { href: '/brand', label: 'Brand profile', body: 'Identity, audience, voice, look, goals, partnerships.' },
   { href: '/inquiries', label: 'Inquiries', body: 'Messages from your media kit.' },
   { href: '/team', label: 'Team', body: 'Managers who work on your account.' },

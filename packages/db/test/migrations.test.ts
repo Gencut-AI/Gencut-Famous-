@@ -24,7 +24,7 @@ describe('migrations', () => {
     assert.deepEqual(userTables(db), [
       'audit_events', 'channel_credentials', 'consents', 'creator_channels', 'creator_content', 'creator_inquiries',
       'creator_metric_snapshots', 'creator_partnerships', 'creator_profiles', 'deletion_requests', 'invitations', 'media_assets',
-      'memberships', 'model_runs', 'profile_pages', 'profile_visits', 'users', 'workspaces',
+      'memberships', 'model_runs', 'profile_pages', 'profile_visits', 'referral_codes', 'referral_leads', 'referral_visits', 'users', 'workspaces',
     ]);
   });
 

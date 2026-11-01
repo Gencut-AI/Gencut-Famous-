@@ -8,5 +8,5 @@ export async function proxy(request: NextRequest) {
 export const config = {
   // Signed-in pages only. Static assets, public media kits and their images, the visit beacon,
   // QR codes, Meta's callbacks and Netlify functions carry no session.
-  matcher: ['/((?!_next/static|_next/image|\\.netlify/|api/health|api/visit|api/qr|api/meta|public-media|p/|@|manifest.webmanifest|robots.txt|sitemap.xml|icon|apple-touch-icon|.*\\.(?:svg|png|jpg|webp|ico)$).*)'],
+  matcher: ['/((?!_next/static|_next/image|\\.netlify/|api/health|api/visit|api/qr|api/meta|api/join|public-media|p/|join/|@|manifest.webmanifest|robots.txt|sitemap.xml|icon|apple-touch-icon|.*\\.(?:svg|png|jpg|webp|ico)$).*)'],
 };

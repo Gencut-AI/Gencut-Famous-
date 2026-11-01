@@ -13,6 +13,7 @@ export const dynamic = 'force-dynamic';
 // Only screens that exist are linked. Film Crew, Calendar, Deal Radar and Deals join in their milestones.
 const RAIL: ReadonlyArray<{ href: string; label: string; icon: IconName }> = [
   { href: '/home', label: 'Home', icon: 'home' },
+  { href: '/referrals', label: 'Referrals', icon: 'invite' },
   { href: '/channels', label: 'Channels', icon: 'channels' },
   { href: '/analytics', label: 'Analytics', icon: 'analytics' },
   { href: '/page', label: 'Media kit', icon: 'kit' },
@@ -23,7 +24,7 @@ const RAIL: ReadonlyArray<{ href: string; label: string; icon: IconName }> = [
 
 const TABS: ReadonlyArray<{ href: string; label: string; icon: IconName }> = [
   { href: '/home', label: 'Home', icon: 'home' },
-  { href: '/channels', label: 'Channels', icon: 'channels' },
+  { href: '/referrals', label: 'Invite', icon: 'invite' },
   { href: '/analytics', label: 'Analytics', icon: 'analytics' },
   { href: '/page', label: 'Kit', icon: 'kit' },
   { href: '/more', label: 'More', icon: 'more' },

@@ -20,3 +20,7 @@ Source of truth: `packages/db/migrations/*.up.sql`. RLS is on for every table wi
 | `profile_pages` | Publish state, headline, work-with-me text, inquiry form on/off, metrics to show. |
 | `profile_visits` | One row per visitor per day: day, `src`, referring host, one-way hash. |
 | `creator_inquiries` | Inquiries with consent id, `src`, sender hash (rate limits), status. |
+| `referral_codes` | One join code per creator (their handle at sign-up, never changed). |
+| `referral_visits` | Join-page visits, once per visitor per day: day, `src`, one-way hash. |
+| `referral_leads` | People who left details on a join page: name, email (staff only), handle, role, consent, `src`, joined workspace. |
+| `workspaces.referred_by_workspace_id` | The creator whose link a new workspace came through, with `referred_at`. |

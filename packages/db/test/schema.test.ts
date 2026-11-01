@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { after, before, describe, it } from 'node:test';
-import { AUDIT_ENTITY_TYPES, AVAILABILITY, INQUIRY_KINDS, METRIC_KEYS, NICHES, PARTNERSHIP_KINDS, PLATFORMS, ROLES, TONES } from '../../core/src/index.ts';
+import { AUDIT_ENTITY_TYPES, AVAILABILITY, INQUIRY_KINDS, REFERRAL_LEAD_ROLES, METRIC_KEYS, NICHES, PARTNERSHIP_KINDS, PLATFORMS, ROLES, TONES } from '../../core/src/index.ts';
 import { migrateUp } from '../src/migrate.ts';
 import { type TestDb, createTestDb, expectSqlError } from './helpers.ts';
 
@@ -38,6 +38,7 @@ describe('schema', () => {
     same('creator_metric_snapshots', 'metric', METRIC_KEYS);
     same('creator_metric_snapshots', 'availability', AVAILABILITY);
     same('creator_inquiries', 'kind', INQUIRY_KINDS);
+    same('referral_leads', 'role', REFERRAL_LEAD_ROLES);
   });
 
   it('allows one owner per workspace', () => {

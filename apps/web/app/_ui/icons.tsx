@@ -45,6 +45,9 @@ export const Icons = {
   external: (p: SVGProps<SVGSVGElement>) => (
     <svg {...base({ width: 16, height: 16, ...p })}><path d="M9 5H5.5A1.5 1.5 0 0 0 4 6.5v12A1.5 1.5 0 0 0 5.5 20h12a1.5 1.5 0 0 0 1.5-1.5V15M14 4h6v6M20 4l-9 9" /></svg>
   ),
+  invite: (p: SVGProps<SVGSVGElement>) => (
+    <svg {...base(p)}><circle cx="9" cy="8.5" r="3.2" /><path d="M3.5 19.5c.8-3.3 2.8-5 5.5-5s4.7 1.7 5.5 5" /><path d="M18 8v6M15 11h6" /></svg>
+  ),
   send: (p: SVGProps<SVGSVGElement>) => (
     <svg {...base(p)}><path d="M20 4 9.5 14.5M20 4l-6.5 16-4-5.5L4 10.5z" /></svg>
   ),
