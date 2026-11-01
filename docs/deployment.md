@@ -16,3 +16,16 @@ Migrations: `DATABASE_URL=<direct connection> pnpm db:migrate`.
 Project `gencutfamous` → Project configuration → Build & deploy → Continuous deployment → Link repository → GitHub → `Gencut-AI/Gencut-Famous-`, branch `main`, base directory empty, package directory `apps/web`. The build command and functions directory come from `apps/web/netlify.toml`. Every push to `main` then deploys.
 
 Variables already set on the site: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `GENCUT_TOKEN_KEYS`, `GENCUT_STATE_SECRET`, `GENCUT_VISIT_SECRET`, `GENCUT_INSTAGRAM_ACCESS=testers`. Netlify's free plan does not allow the "secret" flag, so they are ordinary site variables. Still needed: `DATABASE_URL`, then `INSTAGRAM_APP_ID` / `INSTAGRAM_APP_SECRET`, optionally `ANTHROPIC_API_KEY` and `GENCUT_PUBLIC_URL`.
+
+## Supabase sign-in email templates (one time, in the Supabase dashboard)
+
+Authentication → Emails → Templates. Set **Magic Link** and **Confirm signup** to the same body (D-011). Subject: `Your GenCut Famous sign-in`.
+
+```html
+<h2>Sign in to GenCut Famous</h2>
+<p><a href="{{ .RedirectTo }}&token_hash={{ .TokenHash }}&type=email">Sign in</a></p>
+<p>Or type this code on the sign-in screen: <strong>{{ .Token }}</strong></p>
+<p>The link and code expire in one hour. If you didn't ask to sign in, ignore this email.</p>
+```
+
+`{{ .RedirectTo }}` is the `emailRedirectTo` the app sends (`/auth/confirm?next=…`), so it already has a `?` and the template appends with `&`. It must match the redirect allow-list (`https://gencutfamous.netlify.app/**`).
