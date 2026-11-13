@@ -60,13 +60,18 @@ export class UnifiedInstagramApi implements InstagramApi {
     this.now = now;
   }
 
-  /** Meta's dialog with the login configuration; permissions come from the configuration. */
+  /**
+   * Meta's dialog with the login configuration; permissions come from the
+   * configuration. Same parameters as the Login URL Meta's dashboard generates
+   * for GenCut's configuration (13 Nov 2026): prompt=login lets the creator
+   * choose Instagram or Facebook sign-in.
+   */
   authorizeUrl(redirectUri: string, state: string, _scopes: readonly string[]): string {
     const q = new URLSearchParams({
-      client_id: this.appId, config_id: this.configId, redirect_uri: redirectUri, response_type: 'code',
-      override_default_response_type: 'true', state,
+      client_id: this.appId, config_id: this.configId, display: 'popup', override_default_response_type: 'true',
+      redirect_uri: redirectUri, response_type: 'code', state, prompt: 'login',
     });
-    return `https://www.facebook.com/${META_GRAPH_VERSION}/dialog/oauth?${q.toString()}`;
+    return `https://www.facebook.com/dialog/oauth?${q.toString()}`;
   }
 
   private async call(url: string, init: RequestInit, secrets: readonly string[]): Promise<Record<string, unknown>> {
