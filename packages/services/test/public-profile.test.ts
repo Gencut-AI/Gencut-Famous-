@@ -55,8 +55,19 @@ describe('public profile, visits and inquiries', () => {
     assert.ok(p.metrics.every((m) => m.value !== null && m.source === 'instagram' && m.retrievedAt instanceof Date));
     assert.equal(p.content.length, 1);
     assert.deepEqual(p.links.map((l) => l.url), ['https://www.instagram.com/maya.public/']);
+    assert.equal(p.links[0]?.connected, true);
     const json = JSON.stringify(p);
     for (const secret of ['987654', 'Private Reel Rate', 'rateCard', 'Secret Rival', 'Maya Q. Rivera']) assert.ok(!json.includes(secret), `leaked ${secret}`);
+  });
+
+  it('adds pasted social links after connected accounts, without repeating a connected one', async () => {
+    await updateProfile(h.sql, u, ws, { socialLinks: 'https://www.instagram.com/Maya.Public\nhttps://www.tiktok.com/@maya.cooks\nmaya.example.com' });
+    const p = await getPublishedProfile(h.sql, 'maya.public');
+    assert.deepEqual(p?.links.map((l) => [l.kind, l.label, l.connected]), [
+      ['instagram', '@maya.public', true],
+      ['tiktok', '@maya.cooks', false],
+      ['website', 'maya.example.com', false],
+    ]);
   });
 
   it('counts a visitor once a day, keeps the source, skips bots, and stores no address', async () => {

@@ -5,7 +5,7 @@ import { type CreatorProfile, can, normalizeColor, sectionStatus, splitList } fr
 const empty: CreatorProfile = {
   workspaceId: 'w', publicName: 'Maya', handle: 'maya', legalName: null, bio: null, niches: [], targetAudience: null,
   audienceNotes: null, brandMessage: null, values: [], tone: null, toneNotes: null, colors: [], fonts: [], goals: null,
-  growthTarget: null, partnershipKinds: [], brandsWanted: [], brandsAvoided: [], rateCard: [], hasLogo: false,
+  growthTarget: null, partnershipKinds: [], brandsWanted: [], brandsAvoided: [], rateCard: [], socialLinks: [], hasLogo: false,
   hasPhoto: false, contentExamples: 0, updatedAt: new Date(0),
 };
 

@@ -64,3 +64,12 @@ Each entry: date, decision, why, and what would make us revisit it. Newest last.
 **Decision:** the Supabase "Magic Link" and "Confirm signup" templates link to `/auth/confirm` with a `token_hash` (verified with `verifyOtp`, works in any browser) instead of the default PKCE link, and also show the one-time code. The "check your inbox" screen has a code box (`verifySignInCode`), so someone who reads the email on a phone can sign in on a laptop. The PKCE `code` path stays supported in `/auth/confirm` for any old emails.
 **Why:** the first outside sign-up (1 Nov) failed: the link was requested in one browser and opened from Gmail in another (Edge), so the PKCE verifier cookie was missing. Referral visitors will often hit the same split (social app in-app browser vs. mail app).
 **Risk:** a mail scanner that opens links can use up a token-hash link; the code still works then.
+
+## D-012 Pasted social links on the media kit (13 Nov 2026)
+
+**Context:** The first creator needs their media kit to link to their profiles on every platform, but links came only from accounts connected through each platform's sign-in, and none can connect until the Meta app is approved; the other platforms are on the roadmap.
+
+**Decision:** Creators paste their profile links (one per line) on the Media kit page. `packages/core` reads each link, works out the platform, stores a canonical https URL, and refuses posts, share links and bare @names with a hint. They are stored on `creator_profiles.social_links` (migration 0006, at most 10, kinds checked by the database) and shown as buttons on the media kit. They are links only: no figures come from them, so rule 3 (never fabricate) is unaffected. An account connected through the platform's sign-in comes first and replaces a pasted link to the same profile.
+
+**Also:** link previews now resolve against the deployment address (`metadataBase` from `GENCUT_PUBLIC_URL`, else the build-time site URL), so links shared on social apps show their preview card; invite links get their own preview image. Brand images are shrunk in the browser to about 1.5 MB before upload, because phone photos exceed the hosting request limit.
+

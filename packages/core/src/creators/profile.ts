@@ -3,6 +3,8 @@
  * a creator can start using GenCut at once and fill the rest in over time.
  * Completeness is shown section by section, never as a gate.
  */
+import type { SocialLink } from './social-links.ts';
+
 export const NICHES = [
   'beauty', 'business', 'comedy', 'education', 'entertainment', 'family', 'fashion', 'finance', 'fitness', 'food',
   'gaming', 'health', 'home', 'lifestyle', 'music', 'outdoors', 'pets', 'photography', 'real_estate', 'sports',
@@ -51,6 +53,8 @@ export interface CreatorProfile {
   readonly brandsWanted: readonly string[];
   readonly brandsAvoided: readonly string[];
   readonly rateCard: readonly RateCardItem[];
+  /** Links the creator pasted to their profiles elsewhere; shown on the media kit. */
+  readonly socialLinks: readonly SocialLink[];
   readonly hasLogo: boolean;
   readonly hasPhoto: boolean;
   readonly contentExamples: number;

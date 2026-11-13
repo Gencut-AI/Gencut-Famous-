@@ -42,7 +42,7 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
       ...(p.bio ? { description: p.bio } : {}),
       ...(p.photoId ? { image: `${base}/public-media/${p.photoId}` } : {}),
       url: `${base}/@${p.handle}`,
-      sameAs: p.links.flatMap((l) => (l.url ? [l.url] : [])),
+      sameAs: p.links.map((l) => l.url),
       ...(p.niches.length ? { knowsAbout: p.niches } : {}),
     },
   };

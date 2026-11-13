@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { after, before, describe, it } from 'node:test';
-import { AUDIT_ENTITY_TYPES, AVAILABILITY, INQUIRY_KINDS, REFERRAL_LEAD_ROLES, METRIC_KEYS, NICHES, PARTNERSHIP_KINDS, PLATFORMS, ROLES, TONES } from '../../core/src/index.ts';
+import { AUDIT_ENTITY_TYPES, AVAILABILITY, INQUIRY_KINDS, LINK_KINDS, REFERRAL_LEAD_ROLES, METRIC_KEYS, NICHES, PARTNERSHIP_KINDS, PLATFORMS, ROLES, TONES } from '../../core/src/index.ts';
 import { migrateUp } from '../src/migrate.ts';
 import { type TestDb, createTestDb, expectSqlError } from './helpers.ts';
 
@@ -39,6 +39,19 @@ describe('schema', () => {
     same('creator_metric_snapshots', 'availability', AVAILABILITY);
     same('creator_inquiries', 'kind', INQUIRY_KINDS);
     same('referral_leads', 'role', REFERRAL_LEAD_ROLES);
+    const fn = db.query("SELECT pg_get_functiondef('social_link_kinds_valid(jsonb)'::regprocedure)");
+    const kinds = new Set([...fn.matchAll(/'([a-z]+)'/g)].map((m) => m[1]));
+    for (const k of LINK_KINDS) assert.ok(kinds.has(k), `social_link_kinds_valid lacks ${k}`);
+  });
+
+  it('accepts only well-formed social links, at most 10', () => {
+    const w = db.query("INSERT INTO workspaces (name) VALUES ('Links') RETURNING id");
+    db.query(`INSERT INTO creator_profiles (workspace_id, public_name, handle, adult_attested_at, adult_attested_by) VALUES ('${w}', 'Links', 'links.test', now(), '${U1}')`);
+    const set = (json: string) => `UPDATE creator_profiles SET social_links = '${json}'::jsonb WHERE workspace_id = '${w}'`;
+    db.query(set('[{"kind":"tiktok","url":"https://www.tiktok.com/@a","label":"@a"}]'));
+    assert.match(expectSqlError(db, set('[{"kind":"myspace","url":"https://myspace.com/a","label":"a"}]')), /social_links_valid/);
+    assert.match(expectSqlError(db, set('[{"kind":"website","url":"javascript:alert(1)","label":"x"}]')), /social_links_valid/);
+    assert.match(expectSqlError(db, set(JSON.stringify(Array.from({ length: 11 }, () => ({ kind: 'website', url: 'https://a.example', label: 'a' }))))), /check/i);
   });
 
   it('allows one owner per workspace', () => {

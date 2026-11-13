@@ -19,6 +19,7 @@ export async function generateMetadata({ params }: { params: Promise<{ code: str
     title: { absolute: `${p.publicName} invited you to GenCut Famous` },
     description: 'Your brand, your real numbers and a media kit brands trust. Free to start.',
     openGraph: { title: `${p.publicName} invited you to GenCut Famous`, description: 'Your brand, your real numbers and a media kit brands trust.', siteName: 'GenCut Famous' },
+    twitter: { card: 'summary_large_image', title: `${p.publicName} invited you to GenCut Famous`, description: 'Your brand, your real numbers and a media kit brands trust.' },
     robots: { index: false },
   };
 }

@@ -5,9 +5,12 @@ import {
   PARTNERSHIP_KINDS,
   type PartnershipKind,
   type RateCardItem,
+  SOCIAL_LINKS_MAX,
+  type SocialLink,
   TONES,
   type Tone,
   normalizeColor,
+  parseSocialLinks,
   splitList,
   validateHandle,
 } from '@gencut/core';
@@ -86,6 +89,7 @@ interface ProfileRow {
   brands_wanted: string[];
   brands_avoided: string[];
   rate_card: RateCardItem[];
+  social_links: SocialLink[];
   has_logo: boolean;
   has_photo: boolean;
   content_examples: number;
@@ -98,7 +102,7 @@ export function toProfile(r: ProfileRow): CreatorProfile {
     niches: r.niches, targetAudience: r.target_audience, audienceNotes: r.audience_notes, brandMessage: r.brand_message,
     values: r.brand_values, tone: r.tone, toneNotes: r.tone_notes, colors: r.colors, fonts: r.fonts, goals: r.goals,
     growthTarget: r.growth_target, partnershipKinds: r.partnership_kinds, brandsWanted: r.brands_wanted,
-    brandsAvoided: r.brands_avoided, rateCard: r.rate_card, hasLogo: r.has_logo, hasPhoto: r.has_photo,
+    brandsAvoided: r.brands_avoided, rateCard: r.rate_card, socialLinks: r.social_links, hasLogo: r.has_logo, hasPhoto: r.has_photo,
     contentExamples: Number(r.content_examples), updatedAt: r.updated_at,
   };
 }
@@ -155,6 +159,15 @@ export const profilePatch = z
     rateCard: z
       .array(z.object({ deliverable: z.string().trim().min(1).max(80), priceUsd: z.number().int().min(0).max(10_000_000) }))
       .max(12),
+    /** Pasted text, one link per line. Every line must be usable, so nothing is dropped silently. */
+    socialLinks: z.string().max(4000).transform((v, c) => {
+      const { links, problems } = parseSocialLinks(v);
+      if (problems.length) {
+        c.addIssue({ code: 'custom', message: problems.slice(0, 3).join(' ') });
+        return z.NEVER;
+      }
+      return links.slice(0, SOCIAL_LINKS_MAX);
+    }),
   })
   .partial();
 
@@ -162,7 +175,7 @@ const COLUMNS: Readonly<Record<string, string>> = {
   publicName: 'public_name', handle: 'handle', legalName: 'legal_name', bio: 'bio', niches: 'niches',
   targetAudience: 'target_audience', audienceNotes: 'audience_notes', brandMessage: 'brand_message', values: 'brand_values',
   tone: 'tone', toneNotes: 'tone_notes', colors: 'colors', fonts: 'fonts', goals: 'goals', growthTarget: 'growth_target',
-  partnershipKinds: 'partnership_kinds', brandsWanted: 'brands_wanted', brandsAvoided: 'brands_avoided', rateCard: 'rate_card',
+  partnershipKinds: 'partnership_kinds', brandsWanted: 'brands_wanted', brandsAvoided: 'brands_avoided', rateCard: 'rate_card', socialLinks: 'social_links',
 };
 
 /** Save the fields sent; records which fields changed (names only, never values). */
@@ -178,7 +191,7 @@ export async function updateProfile(sql: Sql, ctx: RequestContext, workspaceId: 
   const row: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(patch)) {
     const col = COLUMNS[k];
-    if (col && v !== undefined) row[col] = k === 'rateCard' ? sql.json(v as never) : v;
+    if (col && v !== undefined) row[col] = k === 'rateCard' || k === 'socialLinks' ? sql.json(v as never) : v;
   }
   return (await sql.begin(async (tx) => {
     await requireCapability(tx, ctx, workspaceId, 'edit_profile');

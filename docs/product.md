@@ -10,6 +10,7 @@ Status labels follow the directive (§14): LIVE · IMPLEMENTED BUT NOT YET VERIF
 | Instagram connection (OAuth, encrypted tokens, 7 states, disconnect, delete data) | IMPLEMENTED BUT NOT YET VERIFIED | Tested against a scripted fake; needs a Meta app and a tester account to verify live. |
 | Metrics sync and dashboard (followers, growth, reach, views, engagement, top content) | IMPLEMENTED BUT NOT YET VERIFIED | Same. |
 | Meta deauthorize and data-deletion callbacks | IMPLEMENTED BUT NOT YET VERIFIED | URLs to register in the Meta app. |
+| Pasted social links (Instagram, TikTok, YouTube, X, Threads, Facebook, LinkedIn, website) on the media kit | IMPLEMENTED BUT NOT YET VERIFIED | Pasted on Media kit → Your social links; platform read from the link; posts and share links refused with a hint. Links only, no numbers; a connected account replaces a pasted link to the same profile. Rendered locally at 390 px. |
 | Public media kit `/@handle`, SEO, QR, tagged links, visit counts | IMPLEMENTED BUT NOT YET VERIFIED | Rendered locally at 390 and 1440 px. Domain not attached. |
 | Inquiries with stored consent | IMPLEMENTED BUT NOT YET VERIFIED | GenCut does not email the creator about new inquiries yet. |
 | Referral links: join page, visit and lead tracking, sign-up credit, Referrals dashboard, staff lead list | IMPLEMENTED BUT NOT YET VERIFIED | Tested in services and rendered at 390 and 1440 px; staff page needs `GENCUT_ADMIN_EMAILS`. |

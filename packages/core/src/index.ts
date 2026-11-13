@@ -5,6 +5,7 @@ export * from './audit/audit.ts';
 export * from './ai/model.ts';
 export * from './creators/handle.ts';
 export * from './creators/profile.ts';
+export * from './creators/social-links.ts';
 export * from './metrics/registry.ts';
 export * from './connectors/manifest.ts';
 export * from './connectors/instagram.ts';

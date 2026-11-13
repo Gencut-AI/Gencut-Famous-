@@ -1,4 +1,4 @@
-import { PLATFORM_LABELS, can } from '@gencut/core';
+import { LINK_KIND_LABELS, PLATFORM_LABELS, can } from '@gencut/core';
 import { PROFILE_CONTENT_MAX, getCreatorProfile, getPageSettings, listContent } from '@gencut/services';
 import type { Metadata } from 'next';
 import Link from 'next/link';
@@ -8,6 +8,7 @@ import { day, when } from '../../../lib/format.ts';
 import { requireSession } from '../../../lib/session.ts';
 import { publish, toggleContent } from './actions.ts';
 import { CopyButton } from './copy-button.tsx';
+import { LinksForm } from './links-form.tsx';
 import { SettingsForm } from './settings-form.tsx';
 
 export const metadata: Metadata = { title: 'Media kit' };
@@ -48,12 +49,25 @@ export default async function MediaKitPage() {
           )}
         </div>
         {!page.published && (
-          <p className="text-sm text-ink-soft">Publishing makes public: your name, handle, photo, bio, brand message, categories, the numbers and posts you pick below, your style images, self-reported partnerships and links to your connected accounts. Never public: your legal name, rate card, brands you avoid, goals or audience notes.</p>
+          <p className="text-sm text-ink-soft">Publishing makes public: your name, handle, photo, bio, brand message, categories, the numbers and posts you pick below, your style images, self-reported partnerships and your social links. Never public: your legal name, rate card, brands you avoid, goals or audience notes.</p>
         )}
         <div className="flex gap-2">
           <input readOnly value={url} className="field font-medium" aria-label="Your media kit link" />
           <CopyButton text={url} />
         </div>
+      </section>
+
+      <section aria-labelledby="links" className="panel">
+        <h2 id="links" className="display text-xl font-semibold">Your social links</h2>
+        <p className="mt-1 mb-5 text-sm text-ink-soft">Buttons on your media kit so brands and fans can find you everywhere. These are links only: numbers come from accounts you connect.</p>
+        {profile.socialLinks.length > 0 && (
+          <ul className="mb-5 flex flex-wrap gap-2" aria-label="Links on your media kit">
+            {profile.socialLinks.map((l) => (
+              <li key={l.url}><a href={l.url} target="_blank" rel="noopener noreferrer" className="chip">{l.kind === 'website' ? l.label : `${LINK_KIND_LABELS[l.kind]} ${l.label}`}</a></li>
+            ))}
+          </ul>
+        )}
+        <LinksForm links={profile.socialLinks.map((l) => l.url)} />
       </section>
 
       <section aria-labelledby="settings" className="panel">
