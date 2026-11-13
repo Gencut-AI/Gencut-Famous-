@@ -1,4 +1,4 @@
-import { type Availability, IG_ACCOUNT_INSIGHTS, IG_MEDIA_INSIGHTS, type MetricKey, insightsKind, parseInsights } from '@gencut/core';
+import { type Availability, IG_ACCOUNT_INSIGHTS, IG_MEDIA_INSIGHTS, type MetricKey, effectiveInstagramScopes, insightsKind, parseInsights } from '@gencut/core';
 import { recordAudit } from '../audit.ts';
 import { type ConnectorDeps, readCredential, storeCredential } from '../connectors/channels.ts';
 import { INSTAGRAM_API_VERSION, type IgMedia, InstagramApiError } from '../connectors/instagram-api.ts';
@@ -107,7 +107,7 @@ export async function syncInstagramChannel(sql: Sql, channelId: string, deps: Co
     note('Account', e);
   }
 
-  if (ch.granted_scopes.includes('instagram_business_manage_insights') && !authError) {
+  if (effectiveInstagramScopes(ch.granted_scopes).includes('instagram_business_manage_insights') && !authError) {
     // Yesterday (a full UTC day) and the last 7 full days. Meta may delay data up to 48 hours.
     const end = dayStart(now);
     const yesterday = new Date(end.getTime() - 86_400_000);
@@ -149,7 +149,7 @@ export async function syncInstagramChannel(sql: Sql, channelId: string, deps: Co
     if (row) postIds.set(p.id, row.id);
   }
 
-  const canInsights = ch.granted_scopes.includes('instagram_business_manage_insights');
+  const canInsights = effectiveInstagramScopes(ch.granted_scopes).includes('instagram_business_manage_insights');
   for (const p of posts) {
     const contentId = postIds.get(p.id) ?? null;
     const base = { periodKind: 'lifetime' as const, periodStart: null, periodEnd: null, asOf: today, contentId };

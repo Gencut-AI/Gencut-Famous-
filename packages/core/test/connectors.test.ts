@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { CONNECTORS, INSTAGRAM, PLATFORMS, connectionState, insightsKind, missingScopes, parseGrantedScopes, parseInsights } from '../src/index.ts';
+import { CONNECTORS, INSTAGRAM, PLATFORMS, connectionState, effectiveInstagramScopes, insightsKind, instagramScopeLabel, missingScopes, parseGrantedScopes, parseInsights } from '../src/index.ts';
 
 const now = new Date('2026-10-31T12:00:00Z');
 const facts = {
@@ -61,5 +61,13 @@ describe('Instagram parsing', () => {
     assert.equal(insightsKind('VIDEO', 'REELS'), 'REELS');
     assert.equal(insightsKind('IMAGE', 'FEED'), 'FEED');
     assert.equal(insightsKind('IMAGE', 'STORY'), null);
+  });
+  it('treats Unified Login permission names as the same permissions, and names what is missing the way the login does', () => {
+    const unified = ['instagram_basic', 'public_profile'];
+    const eff = effectiveInstagramScopes(unified);
+    assert.equal(connectionState(INSTAGRAM, { ...facts, grantedScopes: eff }, now), 'partially_connected');
+    assert.equal(connectionState(INSTAGRAM, { ...facts, grantedScopes: effectiveInstagramScopes([...unified, 'instagram_manage_insights']) }, now), 'connected');
+    assert.deepEqual(missingScopes(INSTAGRAM, eff).map((s) => instagramScopeLabel(s, unified)), ['instagram_manage_insights']);
+    assert.equal(instagramScopeLabel('instagram_business_manage_insights', ['instagram_business_basic']), 'instagram_business_manage_insights');
   });
 });
