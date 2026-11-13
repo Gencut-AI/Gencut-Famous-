@@ -2,16 +2,20 @@
 
 ## Instagram (built, not yet verified live)
 
-API: Instagram API with Instagram Login, `graph.instagram.com/v26.0`. Scopes: `instagram_business_basic`, `instagram_business_manage_insights`. Creator or Business accounts only.
+Two Meta setups are supported; `INSTAGRAM_CONFIG_ID` chooses.
 
-Set up in the Meta App Dashboard (Instagram product → API setup with Instagram login):
+**Unified Login (Meta apps created from late 2026; GenCut's app, 13 Nov 2026).** New Meta apps no longer offer "API setup with Instagram login". The creator signs in with Instagram or Facebook in Meta's dialog (`facebook.com/v26.0/dialog/oauth` with `config_id`, `override_default_response_type=true`), chooses the Instagram professional account, and GenCut exchanges the code on `graph.facebook.com/v26.0/oauth/access_token`. `debug_token` gives the granted permissions, the expiry and, in `granular_scopes`, the Instagram account id; a business (system-user) token does not expire, a user token is exchanged for a 60-day one. Data calls go to `graph.facebook.com/v26.0/{ig-id}` with the token in the header and `appsecret_proof`. Permissions: `instagram_basic`, `instagram_manage_insights` (the same as `instagram_business_*` under Instagram Login; checks treat them as equal, `packages/core/src/connectors/instagram.ts`). Client: `packages/services/src/connectors/instagram-unified-api.ts`. Not every response shape is documented by Meta yet; verify the first live connection.
 
-1. OAuth redirect URI: `https://<site>/api/connect/instagram/callback`
-2. Deauthorize callback URL: `https://<site>/api/meta/deauthorize`
-3. Data deletion request URL: `https://<site>/api/meta/data-deletion`
-4. Privacy policy URL: `https://<site>/privacy`; Terms: `https://<site>/terms`
-5. Add the creator's Instagram account as an Instagram tester (App roles), and accept the invitation in Instagram.
-6. Put the Instagram app id and secret in Netlify as `INSTAGRAM_APP_ID` / `INSTAGRAM_APP_SECRET`.
+Set up in the Meta App Dashboard (app must belong to a business portfolio):
+
+1. Instagram use case → Customize → Permissions and features: add `instagram_basic` and `instagram_manage_insights`.
+2. API setup with Unified login → Create new configuration with only those two permissions and the Instagram account asset; copy the Configuration ID into Netlify as `INSTAGRAM_CONFIG_ID`.
+3. Same page → Register a new redirect URL: `https://<site>/api/connect/instagram/callback`.
+4. App settings → Basic: privacy `https://<site>/privacy`, terms `https://<site>/terms`, data deletion `https://<site>/data-deletion`; `INSTAGRAM_APP_ID` / `INSTAGRAM_APP_SECRET` in Netlify are this page's App ID and App secret (secret flag on the secret only).
+5. Deauthorize and data-deletion callbacks (Facebook Login for Business settings, if offered): `https://<site>/api/meta/deauthorize`, `https://<site>/api/meta/data-deletion`.
+6. App roles → Roles: add the creator's Instagram account as an Instagram Tester; they accept in Instagram → Settings → Website permissions → Apps and websites → Tester invites.
+
+**Instagram Login (older apps).** API: Instagram API with Instagram Login, `graph.instagram.com/v26.0`. Scopes: `instagram_business_basic`, `instagram_business_manage_insights`. Creator or Business accounts only. Redirect URI `https://<site>/api/connect/instagram/callback`, deauthorize `https://<site>/api/meta/deauthorize`, data deletion `https://<site>/api/meta/data-deletion`; `INSTAGRAM_APP_ID` / `INSTAGRAM_APP_SECRET` are the Instagram app id and secret.
 
 Until App Review (Advanced Access) and business verification are approved, only testers can connect; keep `GENCUT_INSTAGRAM_ACCESS=testers`.
 

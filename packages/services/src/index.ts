@@ -16,6 +16,7 @@ export * from './creators/assistant.ts';
 export * from './connectors/crypto.ts';
 export * from './connectors/oauth-state.ts';
 export * from './connectors/instagram-api.ts';
+export * from './connectors/instagram-unified-api.ts';
 export * from './connectors/channels.ts';
 export * from './connectors/meta-signed-request.ts';
 export * from './creators/referrals.ts';

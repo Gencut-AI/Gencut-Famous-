@@ -73,3 +73,9 @@ Each entry: date, decision, why, and what would make us revisit it. Newest last.
 
 **Also:** link previews now resolve against the deployment address (`metadataBase` from `GENCUT_PUBLIC_URL`, else the build-time site URL), so links shared on social apps show their preview card; invite links get their own preview image. Brand images are shrunk in the browser to about 1.5 MB before upload, because phone photos exceed the hosting request limit.
 
+## D-013 Instagram through Meta's Unified Login (13 Nov 2026)
+
+**Context:** Creating GenCut's Meta app on 13 Nov, the dashboard said "API setup with Instagram login is not available for newer apps"; only "API setup with Unified login" (and the Facebook-login setup, which needs a Facebook Page) are offered. The Instagram connector was built for Instagram Login.
+
+**Decision:** Add a second client behind the same `InstagramApi` interface, `UnifiedInstagramApi`, used when `INSTAGRAM_CONFIG_ID` is set; the Instagram Login client stays for apps that still have it. Sync, storage, metrics and states are unchanged. Permission checks treat `instagram_basic`/`instagram_manage_insights` as the same permissions as `instagram_business_basic`/`instagram_business_manage_insights`; stored grants keep Meta's own names. The Instagram account id comes from `debug_token`'s `granular_scopes`, because Meta's newer endpoints for this setup are not fully documented; the first live connection is the check.
+

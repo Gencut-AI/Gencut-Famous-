@@ -4,7 +4,7 @@
  * depends on these snapshots (Instagram keeps account insights only 90 days).
  * Scheduled functions have a short time limit, hence the small batch.
  */
-import { GraphInstagramApi, TokenCipher, createDb, syncAllDue } from '@gencut/services';
+import { GraphInstagramApi, TokenCipher, UnifiedInstagramApi, createDb, syncAllDue } from '@gencut/services';
 
 export const config = { schedule: '@hourly' };
 
@@ -20,7 +20,9 @@ export default async function handler(): Promise<Response> {
   if (!cipher) return new Response('Daily sync is off: no token key', { status: 200 });
   const sql = createDb(url, { max: 1 });
   try {
-    const results = await syncAllDue(sql, { instagram: new GraphInstagramApi(appId, appSecret), cipher }, 3);
+    const configId = process.env.INSTAGRAM_CONFIG_ID?.trim();
+    const instagram = configId ? new UnifiedInstagramApi(appId, appSecret, configId) : new GraphInstagramApi(appId, appSecret);
+    const results = await syncAllDue(sql, { instagram, cipher }, 3);
     return Response.json({ synced: results.map((r) => ({ status: r.status, readings: r.readings })) });
   } finally {
     await sql.end({ timeout: 5 });

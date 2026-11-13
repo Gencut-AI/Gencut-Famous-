@@ -6,6 +6,8 @@ import {
   type Platform,
   connectionState,
   connectorFor,
+  effectiveInstagramScopes,
+  instagramScopeLabel,
   missingScopes,
   parseGrantedScopes,
 } from '@gencut/core';
@@ -58,10 +60,12 @@ interface ChannelRow {
 
 export function toChannelView(r: ChannelRow, now: Date): ChannelView {
   const m = connectorFor(r.platform);
+  const granted = r.platform === 'instagram' ? effectiveInstagramScopes(r.granted_scopes) : r.granted_scopes;
+  const missing = missingScopes(m, granted).map((s) => (r.platform === 'instagram' ? instagramScopeLabel(s, r.granted_scopes) : s));
   return {
     id: r.id, platform: r.platform, username: r.username, displayName: r.display_name, accountType: r.account_type,
-    state: connectionState(m, { grantedScopes: r.granted_scopes, accountType: r.account_type, accessExpiresAt: r.access_expires_at, revokedAt: r.revoked_at, authError: r.auth_error }, now),
-    missingScopes: missingScopes(m, r.granted_scopes), connectedAt: r.connected_at, accessExpiresAt: r.access_expires_at,
+    state: connectionState(m, { grantedScopes: granted, accountType: r.account_type, accessExpiresAt: r.access_expires_at, revokedAt: r.revoked_at, authError: r.auth_error }, now),
+    missingScopes: missing, connectedAt: r.connected_at, accessExpiresAt: r.access_expires_at,
     lastSyncedAt: r.last_synced_at, lastSyncStatus: r.last_sync_status, lastSyncError: r.last_sync_error, authError: r.auth_error,
   };
 }
