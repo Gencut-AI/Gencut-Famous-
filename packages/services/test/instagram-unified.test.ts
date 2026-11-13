@@ -31,7 +31,10 @@ describe('Instagram API with Unified Login', () => {
   it('sends the creator to Meta\'s dialog with the login configuration and no scope list', () => {
     const api = new UnifiedInstagramApi(APP, SECRET, CONFIG);
     const u = new URL(api.authorizeUrl('https://gencutfamous.netlify.app/api/connect/instagram/callback', 'signed-state', ['ignored']));
-    assert.equal(`${u.origin}${u.pathname}`, 'https://www.facebook.com/v26.0/dialog/oauth');
+    assert.equal(`${u.origin}${u.pathname}`, 'https://www.facebook.com/dialog/oauth');
+    // Parameter for parameter what Meta's dashboard generated for GenCut's configuration (13 Nov 2026).
+    const dashboard = new URL('https://www.facebook.com/dialog/oauth?client_id=1234567890&config_id=987654321&display=popup&override_default_response_type=true&redirect_uri=https%3A%2F%2Fgencutfamous.netlify.app%2Fapi%2Fconnect%2Finstagram%2Fcallback&response_type=code&state=signed-state&prompt=login');
+    assert.deepEqual([...u.searchParams.entries()].sort(), [...dashboard.searchParams.entries()].sort());
     assert.equal(u.searchParams.get('client_id'), APP);
     assert.equal(u.searchParams.get('config_id'), CONFIG);
     assert.equal(u.searchParams.get('response_type'), 'code');
