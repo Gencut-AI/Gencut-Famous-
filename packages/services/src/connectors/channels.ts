@@ -83,14 +83,14 @@ export async function loadChannels(db: Db, workspaceId: string, now = new Date()
   return rows.map((r) => toChannelView(r, now));
 }
 
-/** Store a token for a channel, encrypted, bound to the channel id. */
-export async function storeCredential(db: Db, cipher: TokenCipher, channelId: string, token: string, expiresAt: Date | null): Promise<void> {
+/** Store a token for a channel, encrypted, bound to the channel id. `now` is when it was issued. */
+export async function storeCredential(db: Db, cipher: TokenCipher, channelId: string, token: string, expiresAt: Date | null, now = new Date()): Promise<void> {
   const s = cipher.seal(token, `channel:${channelId}`);
   await db`
     INSERT INTO channel_credentials (channel_id, key_id, nonce, ciphertext, access_expires_at, issued_at, updated_at)
-    VALUES (${channelId}, ${s.keyId}, ${Buffer.from(s.nonce)}, ${Buffer.from(s.ciphertext)}, ${expiresAt}, now(), now())
+    VALUES (${channelId}, ${s.keyId}, ${Buffer.from(s.nonce)}, ${Buffer.from(s.ciphertext)}, ${expiresAt}, ${now}, now())
     ON CONFLICT (channel_id) DO UPDATE SET key_id = EXCLUDED.key_id, nonce = EXCLUDED.nonce, ciphertext = EXCLUDED.ciphertext,
-      access_expires_at = EXCLUDED.access_expires_at, issued_at = now(), updated_at = now()
+      access_expires_at = EXCLUDED.access_expires_at, issued_at = EXCLUDED.issued_at, updated_at = now()
   `;
 }
 
@@ -161,7 +161,7 @@ export async function connectInstagram(
           VALUES (${workspaceId}, 'instagram', ${account.userId}, ${account.username}, ${account.name}, ${account.accountType}, ${account.profilePictureUrl}, ${scopes}, ${ctx.userId}, ${now})
           RETURNING id`;
     if (!row) throw new Error('channel upsert returned no row');
-    await storeCredential(tx, deps.cipher, row.id, long.accessToken, expiresAt);
+    await storeCredential(tx, deps.cipher, row.id, long.accessToken, expiresAt, now);
     const [view] = (await loadChannels(tx, workspaceId, now)).filter((c) => c.id === row.id);
     if (!view) throw new Error('channel vanished');
     await recordAudit(tx, {

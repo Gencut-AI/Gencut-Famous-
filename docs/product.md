@@ -13,6 +13,7 @@ Status labels follow the directive (§14): LIVE · IMPLEMENTED BUT NOT YET VERIF
 | Public media kit `/@handle`, SEO, QR, tagged links, visit counts | IMPLEMENTED BUT NOT YET VERIFIED | Rendered locally at 390 and 1440 px. Domain not attached. |
 | Inquiries with stored consent | IMPLEMENTED BUT NOT YET VERIFIED | GenCut does not email the creator about new inquiries yet. |
 | Referral links: join page, visit and lead tracking, sign-up credit, Referrals dashboard, staff lead list | IMPLEMENTED BUT NOT YET VERIFIED | Tested in services and rendered at 390 and 1440 px; staff page needs `GENCUT_ADMIN_EMAILS`. |
+| Staff sign-up list `/admin/signups`: who is set up, who signed in without a profile, who never finished sign-in | IMPLEMENTED BUT NOT YET VERIFIED | Tested in services. Reads Supabase `auth.users` when the database role may; otherwise says sign-in records are unavailable. Needs `GENCUT_ADMIN_EMAILS`. |
 | Assistant on the web (read-only) | IMPLEMENTED BUT NOT YET VERIFIED | |
 | Privacy, terms, data deletion pages | PROTOTYPE | Engineering drafts; counsel review needed. |
 | Assistant over WhatsApp | ROADMAP | Needs this app's own WhatsApp number or a shared service. |

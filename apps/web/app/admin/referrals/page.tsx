@@ -1,6 +1,7 @@
 import { REFERRAL_LEAD_ROLE_LABELS } from '@gencut/core';
 import { isAdmin, listAllReferralLeads } from '@gencut/services';
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { db } from '../../../lib/db.ts';
 import { when } from '../../../lib/format.ts';
@@ -20,7 +21,9 @@ export default async function AdminReferralsPage() {
     <main className="mx-auto max-w-6xl px-5 py-8 sm:px-10">
       <Wordmark size={28} />
       <h1 className="display mt-8 text-4xl">Referral leads</h1>
-      <p className="mt-2 text-ink-soft">{leads.length} lead{leads.length === 1 ? '' : 's'}. Each person agreed to be emailed by GenCut about GenCut Famous.</p>
+      <p className="mt-2 text-ink-soft">{leads.length} lead{leads.length === 1 ? '' : 's'}. Each person agreed to be emailed by GenCut about GenCut Famous.{' '}
+        <Link href="/admin/signups" className="text-royal-deep underline-offset-4 hover:underline">Sign-ups</Link>
+      </p>
       <div className="panel mt-6 overflow-x-auto p-0 sm:p-0">
         <table className="w-full text-left text-sm">
           <thead className="bg-lilac/70 text-ink-soft">
