@@ -5,10 +5,12 @@ import {
   INQUIRY_LIMIT_PER_PROFILE_PER_DAY,
   INQUIRY_LIMIT_PER_SENDER_PER_DAY,
   type InquiryKind,
+  type LinkKind,
   type MetricKey,
   NICHE_LABELS,
   type Niche,
   type Platform,
+  type SocialLink,
   inquiryConsentText,
   normalizeHandle,
   normalizeReferral,
@@ -23,6 +25,28 @@ import { ServiceError } from '../errors.ts';
 import { requireCapability } from '../membership.ts';
 import { type Figure, periodLabel } from './dashboard.ts';
 import { type Partnership, listPartnerships, loadProfile } from './profile.ts';
+
+/** Connected accounts first, then pasted links that are not the same account. */
+export function profileLinks(
+  channels: ReadonlyArray<{ platform: Platform; username: string }>,
+  pasted: readonly SocialLink[],
+): PublicProfile['links'] {
+  const out: Array<PublicProfile['links'][number]> = [];
+  const seen = new Set<string>();
+  for (const c of channels) {
+    const url = platformProfileUrl(c.platform, c.username);
+    if (!url) continue;
+    seen.add(url.toLowerCase());
+    seen.add(`${c.platform}:@${c.username.toLowerCase()}`);
+    out.push({ kind: c.platform, label: `@${c.username}`, url, connected: true });
+  }
+  for (const l of pasted) {
+    if (seen.has(l.url.toLowerCase()) || seen.has(`${l.kind}:${l.label.toLowerCase()}`)) continue;
+    seen.add(l.url.toLowerCase());
+    out.push({ kind: l.kind, label: l.label, url: l.url, connected: false });
+  }
+  return out;
+}
 
 export const SHOWABLE_METRICS = ['followers', 'posts', 'views', 'reach', 'interactions'] as const;
 export type ShowableMetric = (typeof SHOWABLE_METRICS)[number];
@@ -108,7 +132,12 @@ export interface PublicProfile {
   readonly accent: string | null;
   readonly photoId: string | null;
   readonly logoId: string | null;
-  readonly links: ReadonlyArray<{ platform: Platform; username: string; url: string | null }>;
+  /**
+   * Links to the creator's profiles elsewhere: accounts connected through each
+   * platform's own sign-in first (`connected`), then links the creator pasted.
+   * A pasted link to an account that is also connected is not repeated.
+   */
+  readonly links: ReadonlyArray<{ kind: LinkKind; label: string; url: string; connected: boolean }>;
   readonly metrics: readonly Figure[];
   readonly content: ReadonlyArray<{ id: string; platform: Platform; permalink: string; caption: string | null; publishedAt: Date | null }>;
   readonly partnerships: readonly Partnership[];
@@ -194,7 +223,7 @@ async function assemble(db: Db, page: PageRow): Promise<PublicProfile | null> {
     niches: profile.niches.map((n: Niche) => NICHE_LABELS[n]), headline: page.headline, workWithMe: page.work_with_me,
     showInquiryForm: page.show_inquiry_form, accent: profile.colors[0] ?? null,
     photoId: media.find((m) => m.kind === 'profile_photo')?.id ?? null, logoId: media.find((m) => m.kind === 'logo')?.id ?? null,
-    links: channels.map((c) => ({ platform: c.platform, username: c.username, url: platformProfileUrl(c.platform, c.username) })),
+    links: profileLinks(channels, profile.socialLinks),
     metrics,
     content: content.map((c) => ({ id: c.id, platform: c.platform, permalink: c.permalink, caption: c.caption_excerpt, publishedAt: c.published_at })),
     partnerships: await listPartnerships(db, ws),

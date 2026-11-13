@@ -49,7 +49,7 @@ export default async function HomePage() {
   const done = PROFILE_SECTIONS.filter((s) => sections[s]).length;
   const setup = [
     { done: done >= 3, label: 'Fill in your brand', detail: `${done} of ${PROFILE_SECTIONS.length} sections done`, href: '/brand' },
-    { done: d.channels.length > 0, label: 'Connect Instagram', detail: d.channels.length ? `${d.channels.length} connected` : 'So your numbers are real', href: '/channels' },
+    { done: profile.socialLinks.length > 0 || d.channels.length > 0, label: 'Add your social links', detail: profile.socialLinks.length ? `${profile.socialLinks.length} on your media kit` : 'So brands can find you everywhere', href: '/page#links' },
     { done: page.published, label: 'Publish your media kit', detail: page.published ? 'Live' : 'Your link for brands', href: '/page' },
   ];
 
@@ -137,8 +137,17 @@ export default async function HomePage() {
       {d.channels.length === 0 ? (
         <section className="panel flex flex-col items-start gap-3">
           <h2 className="display text-2xl">No numbers yet</h2>
-          <p className="max-w-[52ch] text-ink-soft">Connect Instagram and your followers, reach and top posts appear here. GenCut never estimates a number it has not read.</p>
-          <Link href="/channels" className="btn">Connect Instagram</Link>
+          {deps ? (
+            <>
+              <p className="max-w-[52ch] text-ink-soft">Connect Instagram and your followers, reach and top posts appear here. GenCut never estimates a number it has not read.</p>
+              <Link href="/channels" className="btn">Connect Instagram</Link>
+            </>
+          ) : (
+            <>
+              <p className="max-w-[52ch] text-ink-soft">Connecting Instagram for verified numbers is coming soon. GenCut never estimates a number it has not read. Meanwhile, add your social links so brands can find you.</p>
+              <Link href="/page#links" className="btn">Add your social links</Link>
+            </>
+          )}
         </section>
       ) : (
         d.channels.map((c) => (

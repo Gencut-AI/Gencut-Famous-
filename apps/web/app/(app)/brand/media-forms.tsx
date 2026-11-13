@@ -1,20 +1,55 @@
 'use client';
 
-import { useActionState } from 'react';
+import { MEDIA_MAX_BYTES } from '@gencut/core';
+import { useActionState, useState } from 'react';
 import { FormStatus } from '../../_ui/field.tsx';
 import { type FormState, idle } from '../../_ui/form.ts';
 import { addBrandPartnership, upload } from './actions.ts';
+import { shrinkImage } from './shrink-image.ts';
 
 export function UploadForm({ kind, label, withCaption }: { kind: string; label: string; withCaption?: boolean }) {
   const [state, action, pending] = useActionState<FormState, FormData>(upload, idle);
+  const [preparing, setPreparing] = useState(false);
+  const [tooBig, setTooBig] = useState(false);
   return (
-    <form action={action} className="flex flex-col gap-2">
+    <form
+      action={action}
+      className="flex flex-col gap-2"
+      onSubmit={(e) => {
+        if (tooBig) e.preventDefault();
+      }}
+    >
       <input type="hidden" name="kind" value={kind} />
       <label className="text-sm font-medium" htmlFor={`file-${kind}`}>{label}</label>
-      <input id={`file-${kind}`} name="file" type="file" accept="image/png,image/jpeg,image/webp" className="text-sm file:mr-3 file:min-h-10 file:rounded-lg file:border-0 file:bg-lilac file:px-3 file:font-medium file:text-royal-deep" />
+      <input
+        id={`file-${kind}`}
+        name="file"
+        type="file"
+        accept="image/png,image/jpeg,image/webp"
+        className="text-sm file:mr-3 file:min-h-10 file:rounded-lg file:border-0 file:bg-lilac file:px-3 file:font-medium file:text-royal-deep"
+        onChange={async (e) => {
+          const input = e.currentTarget;
+          const picked = input.files?.[0];
+          setTooBig(false);
+          if (!picked) return;
+          setPreparing(true);
+          try {
+            const small = await shrinkImage(picked, kind === 'logo');
+            if (small !== picked && typeof DataTransfer !== 'undefined') {
+              const dt = new DataTransfer();
+              dt.items.add(small);
+              input.files = dt.files;
+            }
+            setTooBig((input.files?.[0]?.size ?? 0) > MEDIA_MAX_BYTES);
+          } finally {
+            setPreparing(false);
+          }
+        }}
+      />
+      {tooBig && <p className="error-text">That image is over 5 MB. Choose a smaller one.</p>}
       {withCaption && <input name="caption" placeholder="Caption (optional)" className="field" maxLength={200} aria-label="Caption" />}
       <div className="flex items-center gap-3">
-        <button type="submit" disabled={pending} className="btn-quiet">{pending ? 'Uploading…' : 'Upload'}</button>
+        <button type="submit" disabled={pending || preparing || tooBig} className="btn-quiet">{preparing ? 'Preparing…' : pending ? 'Uploading…' : 'Upload'}</button>
         <FormStatus state={state} />
       </div>
     </form>

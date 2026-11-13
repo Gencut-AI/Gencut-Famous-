@@ -1,6 +1,6 @@
 'use server';
 
-import { savePageSettings, setContentShown, setPublished } from '@gencut/services';
+import { savePageSettings, setContentShown, setPublished, updateProfile } from '@gencut/services';
 import { revalidatePath } from 'next/cache';
 import { db } from '../../../lib/db.ts';
 import { requireSession } from '../../../lib/session.ts';
@@ -34,4 +34,15 @@ export async function toggleContent(form: FormData): Promise<void> {
   const { ctx, workspace } = await requireSession();
   await setContentShown(db(), ctx, workspace.workspaceId, String(form.get('id') ?? ''), form.get('shown') === 'yes');
   revalidatePath('/page');
+}
+
+export async function saveLinks(_prev: FormState, form: FormData): Promise<FormState> {
+  const { ctx, workspace } = await requireSession();
+  try {
+    await updateProfile(db(), ctx, workspace.workspaceId, { socialLinks: String(form.get('socialLinks') ?? '') });
+  } catch (e) {
+    return toFormError(e);
+  }
+  revalidatePath('/', 'layout');
+  return { status: 'saved', message: 'Saved. They show on your media kit.', at: Date.now() };
 }

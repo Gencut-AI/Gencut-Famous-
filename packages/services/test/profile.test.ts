@@ -40,6 +40,18 @@ describe('brand profile', () => {
     assert.deepEqual(p.rateCard, [{ deliverable: 'Instagram Reel', priceUsd: 2500 }]);
   });
 
+  it('saves pasted social links and refuses the whole save when a line is not a profile link', async () => {
+    const u = user();
+    const ws = await creator(h.sql, u, 'links.saver');
+    const p = await updateProfile(h.sql, u, ws, { socialLinks: 'https://www.instagram.com/links.saver/?igsh=x\nhttps://www.tiktok.com/@links.saver\nlinks.example.com' });
+    assert.deepEqual(p.socialLinks.map((l) => l.kind), ['instagram', 'tiktok', 'website']);
+    const fields = await expectService(updateProfile(h.sql, u, ws, { socialLinks: 'https://www.tiktok.com/@links.saver\nhttps://www.instagram.com/p/abc/' }), 'invalid', 'socialLinks');
+    assert.match(fields.socialLinks ?? '', /not a profile/);
+    assert.equal((await getCreatorProfile(h.sql, u, ws)).socialLinks.length, 3, 'nothing changed on a refused save');
+    assert.equal((await updateProfile(h.sql, u, ws, { socialLinks: '' })).socialLinks.length, 0, 'clearing removes them');
+    await expectService(updateProfile(h.sql, user(), ws, { socialLinks: 'https://x.com/a' }), 'forbidden');
+  });
+
   it('stores partnerships as self-reported only', async () => {
     const u = user();
     const ws = await creator(h.sql, u, 'partner.ship');

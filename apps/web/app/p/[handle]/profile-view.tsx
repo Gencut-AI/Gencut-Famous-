@@ -1,4 +1,4 @@
-import { INQUIRY_KIND_LABELS, METRICS, PLATFORM_LABELS } from '@gencut/core';
+import { INQUIRY_KIND_LABELS, LINK_KIND_LABELS, METRICS, PLATFORM_LABELS } from '@gencut/core';
 import type { PublicProfile } from '@gencut/services';
 import { compact, day, n, sourceLabel, when } from '../../../lib/format.ts';
 import { Avatar } from '../../_ui/avatar.tsx';
@@ -56,15 +56,13 @@ export function ProfileView({ p, preview }: { p: PublicProfile; preview?: boolea
         )}
         {p.links.length > 0 && (
           <ul className="mt-5 flex flex-wrap gap-2" aria-label="Follow me everywhere">
-            {p.links.map((l) =>
-              l.url ? (
-                <li key={`${l.platform}-${l.username}`}>
-                  <a href={l.url} target="_blank" rel="noopener noreferrer me" className="btn-quiet min-h-10 px-4 text-sm">
-                    {PLATFORM_LABELS[l.platform]} @{l.username} <Icons.external />
-                  </a>
-                </li>
-              ) : null,
-            )}
+            {p.links.map((l) => (
+              <li key={l.url}>
+                <a href={l.url} target="_blank" rel="noopener noreferrer me" className="btn-quiet min-h-10 px-4 text-sm">
+                  {l.kind === 'website' ? l.label : `${LINK_KIND_LABELS[l.kind]} ${l.label}`} <Icons.external />
+                </a>
+              </li>
+            ))}
           </ul>
         )}
       </section>
