@@ -101,19 +101,72 @@ export class UnifiedInstagramApi implements InstagramApi {
     return parseTokenFacts(await this.call(`${GRAPH}/debug_token?${q.toString()}`, { method: 'GET' }, [token]));
   }
 
+  /**
+   * The Instagram account the creator chose in Meta's dialog. Meta has not
+   * documented this for Unified Login, so several lookups are tried in the
+   * order other integrations found reliable (Nov 2026), and a failure names
+   * what each one returned, never a token:
+   * 1. me/assigned_instagram_accounts (the business token's assigned accounts),
+   * 2. debug_token granular_scopes target ids,
+   * 3. me?fields=client_business_id, then {business}/owned_instagram_accounts,
+   * 4. Page-linked accounts (me/accounts).
+   * With several candidates, one named in granular_scopes wins, else the first.
+   */
   private async instagramId(token: string): Promise<string> {
     const known = this.ids.get(token);
     if (known) return known;
-    const facts = await this.tokenFacts(token);
-    let id = facts.instagramIds[0] ?? null;
-    if (!id) {
-      // A token from a configuration with Pages: the Instagram account linked to the first Page.
-      const b = await this.get(token, '/me/accounts?fields=instagram_business_account&limit=25').catch(() => null);
-      const pages = Array.isArray(b?.data) ? (b.data as Array<{ instagram_business_account?: { id?: unknown } }>) : [];
-      const linked = pages.find((p) => p.instagram_business_account?.id !== undefined);
-      id = linked ? String(linked.instagram_business_account?.id) : null;
+    const tried: string[] = [];
+    const list = async (path: string, label: string, pick: (row: Record<string, unknown>) => unknown): Promise<string[]> => {
+      try {
+        const out: string[] = [];
+        let next: string | null = path;
+        for (let page = 0; next && page < 5; page++) {
+          const b: Record<string, unknown> = await this.get(token, next);
+          const rows = Array.isArray(b.data) ? (b.data as Array<Record<string, unknown>>) : [];
+          for (const r of rows) {
+            const id = pick(r);
+            if (id !== undefined && id !== null && /^\d+$/.test(String(id))) out.push(String(id));
+          }
+          const after = (b.paging as { cursors?: { after?: unknown }; next?: unknown } | undefined)?.next ? (b.paging as { cursors?: { after?: unknown } }).cursors?.after : null;
+          next = typeof after === 'string' && after ? `${path}${path.includes('?') ? '&' : '?'}after=${encodeURIComponent(after)}` : null;
+        }
+        tried.push(`${label}: ${out.length}`);
+        return out;
+      } catch (e) {
+        tried.push(`${label}: ${e instanceof InstagramApiError ? `error ${e.code ?? e.status}` : 'error'}`);
+        return [];
+      }
+    };
+
+    const assigned = await list('/me/assigned_instagram_accounts?fields=id,username&limit=50', 'assigned accounts', (r) => r.id);
+    let granted: string[] = [];
+    try {
+      granted = (await this.tokenFacts(token)).instagramIds;
+      tried.push(`granted accounts: ${granted.length}`);
+    } catch (e) {
+      tried.push(`granted accounts: ${e instanceof InstagramApiError ? `error ${e.code ?? e.status}` : 'error'}`);
     }
-    if (!id) throw new InstagramApiError(400, null, 'Instagram refused the request: no Instagram professional account was chosen in Meta\'s sign-in');
+    let candidates = assigned.length ? assigned : granted;
+    if (!candidates.length) {
+      try {
+        const me = await this.get(token, '/me?fields=id,client_business_id');
+        const business = me.client_business_id !== undefined ? String(me.client_business_id) : '';
+        if (/^\d+$/.test(business)) {
+          candidates = await list(`/${business}/owned_instagram_accounts?fields=id,username&limit=50`, 'business accounts', (r) => r.id);
+        } else {
+          tried.push('business accounts: no business');
+        }
+      } catch (e) {
+        tried.push(`business accounts: ${e instanceof InstagramApiError ? `error ${e.code ?? e.status}` : 'error'}`);
+      }
+    }
+    if (!candidates.length) {
+      candidates = await list('/me/accounts?fields=instagram_business_account&limit=25', 'page accounts', (r) => (r.instagram_business_account as { id?: unknown } | undefined)?.id);
+    }
+    const id = candidates.find((c) => granted.includes(c)) ?? candidates[0] ?? null;
+    if (!id) {
+      throw new InstagramApiError(400, null, `Instagram refused the request: no Instagram professional account was chosen in Meta's sign-in (${tried.join('; ')})`);
+    }
     this.ids.set(token, id);
     return id;
   }

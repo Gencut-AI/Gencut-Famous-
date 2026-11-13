@@ -72,14 +72,43 @@ describe('Instagram API with Unified Login', () => {
     assert.deepEqual(await api.longLived('EAA-short'), { accessToken: 'EAA-long', expiresInSeconds: 5_184_000 });
   });
 
-  it('says so when no Instagram account was chosen, and keeps tokens and the secret out of errors', async () => {
-    const m = meta({
+  it('finds the account through the business token\'s assigned accounts first, then the business, then Pages', async () => {
+    const assigned = meta({
+      '/me/assigned_instagram_accounts': () => ({ data: [{ id: '178400000000001', username: 'other' }, { id: '17841400000000009', username: 'christian.esd' }] }),
+      '/debug_token': () => debug(),
+      '/17841400000000009': () => ({ id: '17841400000000009', username: 'christian.esd' }),
+    });
+    assert.equal((await new UnifiedInstagramApi(APP, SECRET, CONFIG, assigned.fetchFn).account('EAA-t')).userId, '17841400000000009', 'the one named in granular_scopes wins');
+
+    const business = meta({
+      '/me/assigned_instagram_accounts': () => ({ data: [] }),
       '/debug_token': () => debug({ granular_scopes: [] }),
+      '/me': () => ({ id: '555', client_business_id: '777' }),
+      '/777/owned_instagram_accounts': () => ({ data: [{ id: '17841400000000042', username: 'gencutai' }] }),
+      '/17841400000000042': () => ({ id: '17841400000000042', username: 'gencutai' }),
+    });
+    assert.equal((await new UnifiedInstagramApi(APP, SECRET, CONFIG, business.fetchFn).account('EAA-t')).username, 'gencutai');
+
+    const pages = meta({
+      '/me/assigned_instagram_accounts': () => ({ __status: 400, error: { message: 'Unsupported get request', code: 100 } }),
+      '/debug_token': () => debug({ granular_scopes: [] }),
+      '/me': () => ({ id: '555' }),
+      '/me/accounts': () => ({ data: [{ id: 'page1' }, { id: 'page2', instagram_business_account: { id: '17841400000000077' } }] }),
+      '/17841400000000077': () => ({ id: '17841400000000077', username: 'paged' }),
+    });
+    assert.equal((await new UnifiedInstagramApi(APP, SECRET, CONFIG, pages.fetchFn).account('EAA-t')).userId, '17841400000000077');
+  });
+
+  it('says so when no Instagram account was chosen, naming each lookup, and keeps tokens and the secret out of errors', async () => {
+    const m = meta({
+      '/me/assigned_instagram_accounts': () => ({ data: [] }),
+      '/debug_token': () => debug({ granular_scopes: [] }),
+      '/me': () => ({ id: '555' }),
       '/me/accounts': () => ({ data: [] }),
       '/media': () => ({ __status: 400, error: { message: `Invalid OAuth access token EAA-secret-token with ${SECRET}`, code: 190 } }),
     });
     const api = new UnifiedInstagramApi(APP, SECRET, CONFIG, m.fetchFn);
-    await assert.rejects(api.account('EAA-secret-token'), /no Instagram professional account was chosen/);
+    await assert.rejects(api.account('EAA-secret-token'), /no Instagram professional account was chosen.*assigned accounts: 0; granted accounts: 0; business accounts: no business; page accounts: 0/);
     const err = await api.recentMedia('EAA-secret-token', '1784', 5).catch((e: unknown) => e);
     assert.ok(err instanceof InstagramApiError && err.isAuth);
     assert.ok(!String((err as Error).message).includes('EAA-secret-token') && !String((err as Error).message).includes(SECRET));
