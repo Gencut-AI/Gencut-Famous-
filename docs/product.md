@@ -12,7 +12,7 @@ Status labels follow the directive (§14): LIVE · IMPLEMENTED BUT NOT YET VERIF
 | Meta deauthorize and data-deletion callbacks | IMPLEMENTED BUT NOT YET VERIFIED | URLs to register in the Meta app. |
 | Pasted social links (Instagram, TikTok, YouTube, X, Threads, Facebook, LinkedIn, website) on the media kit | IMPLEMENTED BUT NOT YET VERIFIED | Pasted on Media kit → Your social links; platform read from the link; posts and share links refused with a hint. Links only, no numbers; a connected account replaces a pasted link to the same profile. Rendered locally at 390 px. |
 | Public media kit `/@handle`, SEO, QR, tagged links, visit counts | IMPLEMENTED BUT NOT YET VERIFIED | Rendered locally at 390 and 1440 px. Domain not attached. |
-| Inquiries with stored consent | IMPLEMENTED BUT NOT YET VERIFIED | GenCut does not email the creator about new inquiries yet. |
+| Inquiries with stored consent; email to the creator's team for each new one (reply-to the sender) | IMPLEMENTED BUT NOT YET VERIFIED | Email needs `RESEND_API_KEY` and `GENCUT_EMAIL_FROM`; `/api/health` shows `inquiryEmail: on/off`. Send outcome audited (count only). |
 | Referral links: join page, visit and lead tracking, sign-up credit, Referrals dashboard, staff lead list | IMPLEMENTED BUT NOT YET VERIFIED | Tested in services and rendered at 390 and 1440 px; staff page needs `GENCUT_ADMIN_EMAILS`. |
 | Staff sign-up list `/admin/signups`: who is set up, who signed in without a profile, who never finished sign-in | IMPLEMENTED BUT NOT YET VERIFIED | Tested in services. Reads Supabase `auth.users` when the database role may; otherwise says sign-in records are unavailable. Needs `GENCUT_ADMIN_EMAILS`. |
 | Assistant on the web (read-only) | IMPLEMENTED BUT NOT YET VERIFIED | |

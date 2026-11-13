@@ -12,6 +12,7 @@ import {
   type Platform,
   type SocialLink,
   inquiryConsentText,
+  inquiryNotificationEmail,
   normalizeHandle,
   normalizeReferral,
   platformProfileUrl,
@@ -23,6 +24,7 @@ import type { RequestContext } from '../context.ts';
 import type { Db, Sql } from '../db.ts';
 import { ServiceError } from '../errors.ts';
 import { requireCapability } from '../membership.ts';
+import type { EmailSender } from '../email.ts';
 import { type Figure, periodLabel } from './dashboard.ts';
 import { type Partnership, listPartnerships, loadProfile } from './profile.ts';
 
@@ -282,7 +284,7 @@ const inquiryInput = z.object({
   src: z.string().max(40).nullable(),
 });
 
-export type InquiryOutcome = { status: 'sent' } | { status: 'limited' } | { status: 'unavailable' };
+export type InquiryOutcome = { status: 'sent'; inquiryId: string } | { status: 'limited' } | { status: 'unavailable' };
 
 /**
  * An inquiry from the public page. Stores the exact consent text agreed to,
@@ -319,8 +321,9 @@ export async function submitInquiry(sql: Sql, rawHandle: string, input: unknown,
       VALUES (${page.workspace_id}, ${v.kind}, ${v.name}, ${v.email}, ${v.organization}, ${v.message}, ${consent?.id ?? null}, ${normalizeReferral(v.src)}, ${submitter}, ${now})
       RETURNING id
     `;
-    await recordAudit(tx, { workspaceId: page.workspace_id, actorType: 'system', actorId: null, via: 'web', entityType: 'inquiry', entityId: row?.id ?? '', action: 'received', detail: { kind: v.kind } });
-    return { status: 'sent' } as const;
+    if (!row) throw new Error('inquiry insert returned no row');
+    await recordAudit(tx, { workspaceId: page.workspace_id, actorType: 'system', actorId: null, via: 'web', entityType: 'inquiry', entityId: row.id, action: 'received', detail: { kind: v.kind } });
+    return { status: 'sent', inquiryId: row.id } as const;
   })) as InquiryOutcome;
 }
 
@@ -362,4 +365,38 @@ export async function countUnreadInquiries(db: Db, ctx: RequestContext, workspac
   await requireCapability(db, ctx, workspaceId, 'view');
   const [r] = await db<{ n: number }[]>`SELECT count(*)::int AS n FROM creator_inquiries WHERE workspace_id = ${workspaceId} AND status = 'new'`;
   return r?.n ?? 0;
+}
+
+export type InquiryNotifyResult = 'sent' | 'no_recipients' | 'failed';
+
+/**
+ * Email the creator's team (owner and managers) about a new inquiry, with
+ * reply-to set to the sender, who agreed to be contacted by email. Never
+ * throws: the inquiry is already stored and shown in the app either way. The
+ * outcome is audited with a count, never addresses or the message.
+ */
+export async function notifyInquiry(sql: Sql, inquiryId: string, email: EmailSender, inboxUrl: string): Promise<InquiryNotifyResult> {
+  const [q] = await sql<{ workspace_id: string; kind: InquiryKind; name: string; email: string; organization: string | null; message: string; public_name: string }[]>`
+    SELECT i.workspace_id, i.kind, i.name, i.email, i.organization, i.message, cp.public_name
+    FROM creator_inquiries i JOIN creator_profiles cp ON cp.workspace_id = i.workspace_id WHERE i.id = ${inquiryId}
+  `;
+  if (!q) return 'failed';
+  const team = await sql<{ email: string }[]>`
+    SELECT DISTINCT u.email FROM memberships m JOIN users u ON u.id = m.user_id WHERE m.workspace_id = ${q.workspace_id} ORDER BY u.email
+  `;
+  const audit = (action: string, detail: Record<string, unknown>) =>
+    recordAudit(sql, { workspaceId: q.workspace_id, actorType: 'system', actorId: null, via: 'worker', entityType: 'inquiry', entityId: inquiryId, action, detail });
+  if (!team.length) {
+    await audit('notify_skipped', { reason: 'no team members' });
+    return 'no_recipients';
+  }
+  const content = inquiryNotificationEmail({ publicName: q.public_name, kind: q.kind, name: q.name, email: q.email, organization: q.organization, message: q.message, inboxUrl });
+  try {
+    await email.send({ to: team.map((t) => t.email), ...content, replyTo: q.email });
+  } catch (e) {
+    await audit('notify_failed', { recipients: team.length, error: e instanceof Error ? e.message.slice(0, 200) : 'unknown error' });
+    return 'failed';
+  }
+  await audit('notified', { recipients: team.length });
+  return 'sent';
 }

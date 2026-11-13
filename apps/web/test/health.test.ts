@@ -12,6 +12,7 @@ describe('health report', () => {
       version: '0.1.0',
       commit: null,
       database: 'not_configured',
+      inquiryEmail: 'off',
       checkedAt: '2026-10-10T18:00:00.000Z',
     });
   });
@@ -21,6 +22,13 @@ describe('health report', () => {
     assert.equal(h.status, 'ok');
     assert.equal(h.database, 'reachable');
     assert.equal(h.commit, 'abcdef123456');
+  });
+
+  it('says whether inquiry emails are on, never the key', async () => {
+    const on = await getHealth({ RESEND_API_KEY: 're_secret_value', GENCUT_EMAIL_FROM: 'GenCut <hello@mail.gencut.ai>' }, async () => true, now);
+    assert.equal(on.inquiryEmail, 'on');
+    assert.ok(!JSON.stringify(on).includes('re_secret_value'));
+    assert.equal((await getHealth({ RESEND_API_KEY: 're_x' }, async () => true, now)).inquiryEmail, 'off');
   });
 
   it('degrades when the probe fails or throws, without leaking details', async () => {

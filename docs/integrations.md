@@ -22,3 +22,8 @@ Sources (read 31 Oct 2026): [Business Login for Instagram](https://developers.fa
 ## Roadmap connectors
 
 YouTube (Google OAuth, `youtube.readonly` + `yt-analytics.readonly`, Google verification), TikTok (Login Kit, per-scope review; posts private until audit), Threads (same Meta app), Facebook Pages, LinkedIn (Community Management API, Standard tier review), X (paid per call; deferred). Each needs a manifest in `packages/core/src/connectors/` (replace the `planned` entry) and a client in `packages/services/src/connectors/`.
+
+## Email (Resend)
+
+Sign-in emails go through Supabase Auth's custom SMTP (Resend, sender on `mail.gencut.ai`). New-inquiry emails are sent by the app itself through Resend's HTTP API (`packages/services/src/email.ts`, behind the `EmailSender` interface): set `RESEND_API_KEY` (a sending-only key) and `GENCUT_EMAIL_FROM` (an address on the verified domain, e.g. `GenCut Famous <notifications@mail.gencut.ai>`) in Netlify, then redeploy. The email goes to every team member (owner and managers) with reply-to set to the sender, who agreed to be contacted by email. A failed send is audited as `notify_failed` and never loses the inquiry, which is always in the app.
+

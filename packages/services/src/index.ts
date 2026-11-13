@@ -1,5 +1,6 @@
 export * from './context.ts';
 export * from './db.ts';
+export * from './email.ts';
 export * from './errors.ts';
 export * from './audit.ts';
 export * from './membership.ts';
