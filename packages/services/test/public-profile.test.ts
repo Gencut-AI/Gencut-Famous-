@@ -8,6 +8,10 @@ import {
   getPublishedProfile,
   listContent,
   listInquiries,
+  notifyInquiry,
+  type EmailSender,
+  type OutgoingEmail,
+  ResendEmailSender,
   recordVisit,
   savePageSettings,
   setContentShown,
@@ -81,7 +85,7 @@ describe('public profile, visits and inquiries', () => {
   });
 
   it('takes an inquiry with the exact consent text, and limits repeat senders', async () => {
-    assert.deepEqual(await submitInquiry(h.sql, 'maya.public', inquiry(), visitor('5.5.5.5'), SECRET), { status: 'sent' });
+    assert.equal((await submitInquiry(h.sql, 'maya.public', inquiry(), visitor('5.5.5.5'), SECRET)).status, 'sent');
     const consent = h.db.query(`SELECT disclosure_text || '|' || address FROM consents WHERE workspace_id = '${ws}'`);
     assert.match(consent, /Maya\.public and their team may reply.*\|jo@brand\.example/);
     await expectService(submitInquiry(h.sql, 'maya.public', inquiry({ consent: false }), visitor('5.5.5.5'), SECRET), 'invalid', 'consent');
@@ -115,4 +119,39 @@ describe('public profile, visits and inquiries', () => {
     const link = await askAssistant(h.sql, u, ws, 'what is my profile link', null, 'https://gencut.ai');
     assert.equal(link.link?.href, 'https://gencut.ai/@maya.public');
   });
+  it('emails the creator team about a new inquiry, replying to the sender, and survives a failed send', async () => {
+    const sent: OutgoingEmail[] = [];
+    const ok: EmailSender = { send: async (m) => void sent.push(m) };
+    const r = await submitInquiry(h.sql, 'maya.public', inquiry({ name: 'Ana Press', email: 'ana@press.example', kind: 'press' }), visitor('6.6.6.6'), SECRET);
+    assert.equal(r.status, 'sent');
+    const id = r.status === 'sent' ? r.inquiryId : '';
+    assert.equal(await notifyInquiry(h.sql, id, ok, 'https://app.example/inquiries'), 'sent');
+    assert.deepEqual(sent[0]?.to, [u.email.toLowerCase()]);
+    assert.equal(sent[0]?.replyTo, 'ana@press.example');
+    assert.match(sent[0]?.subject ?? '', /Press or media from Ana Press/);
+
+    const broken: EmailSender = { send: async () => { throw new Error('Email provider refused the message (403)'); } };
+    assert.equal(await notifyInquiry(h.sql, id, broken, 'https://app.example/inquiries'), 'failed');
+    const log = h.db.query(`SELECT string_agg(action || ':' || detail::text, '|' ORDER BY id) FROM audit_events WHERE entity_id = '${id}'`);
+    assert.match(log, /notified:\{"recipients": 1\}/);
+    assert.match(log, /notify_failed:.*403/);
+    assert.ok(!log.includes('ana@press.example'), 'no addresses in the audit log');
+    assert.equal(await notifyInquiry(h.sql, '00000000-0000-4000-8000-000000000000', ok, 'x'), 'failed');
+  });
+
+  it('sends through Resend with the key in the header only, and reports a refusal', async () => {
+    const calls: Array<{ url: string; init: RequestInit }> = [];
+    const fake = (status: number, body: unknown) => (async (url: string | URL | Request, init?: RequestInit) => {
+      calls.push({ url: String(url), init: init ?? {} });
+      return new Response(JSON.stringify(body), { status });
+    }) as typeof fetch;
+    await new ResendEmailSender('re_test_key', 'GenCut <n@mail.gencut.ai>', fake(200, { id: 'x' })).send({ to: ['a@b.example'], subject: 'S', text: 'T', html: '<p>T</p>', replyTo: 'r@b.example' });
+    const body = JSON.parse(String(calls[0]?.init.body));
+    assert.equal(calls[0]?.url, 'https://api.resend.com/emails');
+    assert.equal((calls[0]?.init.headers as Record<string, string>).authorization, 'Bearer re_test_key');
+    assert.deepEqual(body, { from: 'GenCut <n@mail.gencut.ai>', to: ['a@b.example'], subject: 'S', text: 'T', html: '<p>T</p>', reply_to: 'r@b.example' });
+    await assert.rejects(new ResendEmailSender('re_test_key', 'x', fake(403, { message: 'The domain is not verified' })).send({ to: ['a@b.example'], subject: 'S', text: 'T', html: 'H' }), /403.*not verified/);
+    assert.equal(ResendEmailSender.fromEnv({ RESEND_API_KEY: 're_x' }), null);
+  });
+
 });

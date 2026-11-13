@@ -11,6 +11,7 @@ export * from './connectors/manifest.ts';
 export * from './connectors/instagram.ts';
 export * from './connectors/catalog.ts';
 export * from './inquiries/inquiry.ts';
+export * from './inquiries/notification.ts';
 export * from './assistant/commands.ts';
 export * from './media.ts';
 export * from './referrals/referral.ts';

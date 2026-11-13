@@ -10,6 +10,8 @@ export interface Health {
   readonly version: string;
   readonly commit: string | null;
   readonly database: DatabaseState;
+  /** Whether new-inquiry emails can be sent (RESEND_API_KEY and GENCUT_EMAIL_FROM set). Never the values. */
+  readonly inquiryEmail: 'on' | 'off';
   readonly checkedAt: string;
 }
 
@@ -34,6 +36,7 @@ export async function getHealth(
     version: env.GENCUT_VERSION || '0.0.0',
     commit: env.GENCUT_COMMIT ? env.GENCUT_COMMIT.slice(0, 12) : null,
     database,
+    inquiryEmail: env.RESEND_API_KEY?.trim() && env.GENCUT_EMAIL_FROM?.trim() ? 'on' : 'off',
     checkedAt: now().toISOString(),
   };
 }
