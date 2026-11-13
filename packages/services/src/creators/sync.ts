@@ -86,7 +86,7 @@ export async function syncInstagramChannel(sql: Sql, channelId: string, deps: Co
     try {
       const r = await deps.instagram.refresh(token);
       token = r.accessToken;
-      await storeCredential(sql, deps.cipher, channelId, token, r.expiresInSeconds > 0 ? new Date(now.getTime() + r.expiresInSeconds * 1000) : null);
+      await storeCredential(sql, deps.cipher, channelId, token, r.expiresInSeconds > 0 ? new Date(now.getTime() + r.expiresInSeconds * 1000) : null, now);
     } catch (e) {
       note('Token refresh', e);
     }
@@ -192,9 +192,10 @@ export async function syncInstagramChannel(sql: Sql, channelId: string, deps: Co
 export async function syncWorkspace(sql: Sql, ctx: RequestContext, workspaceId: string, deps: ConnectorDeps, force = false): Promise<SyncResult[]> {
   await requireCapability(sql, ctx, workspaceId, 'view');
   const minutes = force ? 1 : SYNC_MIN_MINUTES;
+  const before = new Date((deps.now?.() ?? new Date()).getTime() - minutes * 60_000);
   const due = await sql<{ id: string }[]>`
     SELECT id FROM creator_channels WHERE workspace_id = ${workspaceId} AND platform = 'instagram' AND revoked_at IS NULL
-      AND (last_synced_at IS NULL OR last_synced_at < now() - make_interval(mins => ${minutes}))
+      AND (last_synced_at IS NULL OR last_synced_at < ${before})
   `;
   const out: SyncResult[] = [];
   for (const d of due) out.push(await syncInstagramChannel(sql, d.id, deps, force ? 'manual' : 'auto'));
@@ -203,9 +204,10 @@ export async function syncWorkspace(sql: Sql, ctx: RequestContext, workspaceId: 
 
 /** The daily snapshot for every connected channel not read in the last 20 hours. */
 export async function syncAllDue(sql: Sql, deps: ConnectorDeps, limit = 200): Promise<SyncResult[]> {
+  const before = new Date((deps.now?.() ?? new Date()).getTime() - 20 * 3_600_000);
   const due = await sql<{ id: string }[]>`
     SELECT id FROM creator_channels WHERE platform = 'instagram' AND revoked_at IS NULL
-      AND (last_synced_at IS NULL OR last_synced_at < now() - interval '20 hours')
+      AND (last_synced_at IS NULL OR last_synced_at < ${before})
     ORDER BY last_synced_at NULLS FIRST LIMIT ${limit}
   `;
   const out: SyncResult[] = [];

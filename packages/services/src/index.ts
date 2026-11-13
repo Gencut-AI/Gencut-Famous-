@@ -18,3 +18,4 @@ export * from './connectors/instagram-api.ts';
 export * from './connectors/channels.ts';
 export * from './connectors/meta-signed-request.ts';
 export * from './creators/referrals.ts';
+export * from './signups.ts';
