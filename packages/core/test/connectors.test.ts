@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { CONNECTORS, INSTAGRAM, PLATFORMS, connectionState, effectiveInstagramScopes, insightsKind, instagramScopeLabel, missingScopes, parseGrantedScopes, parseInsights } from '../src/index.ts';
+import { CONNECTORS, INSTAGRAM, PLATFORMS, connectionState, effectiveInstagramScopes, insightsKind, instagramAccountTypeLabel, instagramScopeLabel, missingScopes, parseGrantedScopes, parseInsights } from '../src/index.ts';
 
 const now = new Date('2026-10-31T12:00:00Z');
 const facts = {
@@ -69,5 +69,10 @@ describe('Instagram parsing', () => {
     assert.equal(connectionState(INSTAGRAM, { ...facts, grantedScopes: effectiveInstagramScopes([...unified, 'instagram_manage_insights']) }, now), 'connected');
     assert.deepEqual(missingScopes(INSTAGRAM, eff).map((s) => instagramScopeLabel(s, unified)), ['instagram_manage_insights']);
     assert.equal(instagramScopeLabel('instagram_business_manage_insights', ['instagram_business_basic']), 'instagram_business_manage_insights');
+  });
+  it('labels an Instagram account without a type as professional, since only those can connect', () => {
+    assert.equal(instagramAccountTypeLabel('MEDIA_CREATOR'), 'Creator account');
+    assert.equal(instagramAccountTypeLabel('BUSINESS'), 'Business account');
+    assert.equal(instagramAccountTypeLabel(null), 'Professional account');
   });
 });

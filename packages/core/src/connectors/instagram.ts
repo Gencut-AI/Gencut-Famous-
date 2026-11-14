@@ -122,3 +122,16 @@ export function insightsKind(mediaType: string | null, productType: string | nul
   if (productType === 'FEED' || productType === null) return 'FEED';
   return null;
 }
+
+/**
+ * How a connected account's type reads on the Channels page. Under Unified
+ * Login the Graph API does not return the type, but only professional
+ * (Creator or Business) accounts can be chosen in Meta's dialog, so an
+ * Instagram connection without a type is a professional account.
+ */
+export function instagramAccountTypeLabel(accountType: string | null): string {
+  if (accountType === 'MEDIA_CREATOR') return 'Creator account';
+  if (accountType === 'BUSINESS') return 'Business account';
+  if (accountType === null) return 'Professional account';
+  return accountType;
+}

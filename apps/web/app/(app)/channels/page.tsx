@@ -1,4 +1,4 @@
-import { CONNECTORS, METRICS, PLATFORM_LABELS, can } from '@gencut/core';
+import { can, CONNECTORS, instagramAccountTypeLabel, METRICS, PLATFORM_LABELS } from '@gencut/core';
 import { listChannels, listDisconnected } from '@gencut/services';
 import type { Metadata } from 'next';
 import { instagramAccess, missingConnectorSettings } from '../../../lib/connectors.ts';
@@ -78,7 +78,7 @@ export default async function ChannelsPage({ searchParams }: { searchParams: Pro
                     <div>
                       <p className="font-semibold">@{c.username}</p>
                       <p className="text-xs text-ink-soft">
-                        {c.accountType === 'MEDIA_CREATOR' ? 'Creator account' : c.accountType === 'BUSINESS' ? 'Business account' : c.accountType ?? 'Account type unknown'}, connected {day(c.connectedAt)}
+                        {c.platform === 'instagram' ? instagramAccountTypeLabel(c.accountType) : (c.accountType ?? 'Account type unknown')}, connected {day(c.connectedAt)}
                         {c.accessExpiresAt ? `, access renews before ${day(c.accessExpiresAt)}` : ''}
                       </p>
                     </div>
