@@ -1,17 +1,17 @@
 /**
  * Every 15 minutes: take the daily snapshot for connected channels not read in
  * the last 20 hours. Growth history depends on these snapshots (Instagram keeps
- * account insights only 90 days). Scheduled functions stop at 30 seconds, so a
- * run stops claiming new channels after 18 seconds; one channel takes a few
- * seconds, so 96 runs a day cover several hundred channels. Runs that overlap
- * never take the same channel (syncAllDue claims each one).
+ * account insights only 90 days). Scheduled functions stop at 30 seconds and a
+ * channel takes about 10 (measured live, 19 Nov), so a run claims no new
+ * channel after 12 seconds: two channels a run, about 190 a day. Runs that
+ * overlap never take the same channel (syncAllDue claims each one).
  */
 import { GraphInstagramApi, TokenCipher, UnifiedInstagramApi, createDb, fetchInstagramPhoto, syncAllDue } from '@gencut/services';
 
 export const config = { schedule: '*/15 * * * *' };
 
 /** Stop claiming new channels after this long, leaving room under the 30-second limit. */
-const BUDGET_MS = 18_000;
+const BUDGET_MS = 12_000;
 
 export default async function handler(): Promise<Response> {
   const url = process.env.DATABASE_URL;
