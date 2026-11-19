@@ -47,11 +47,15 @@ export default async function HomePage() {
 
   const sections = sectionStatus(profile);
   const done = PROFILE_SECTIONS.filter((s) => sections[s]).length;
+  // Fastest path to a media kit brands can use: verified numbers first, then publish. Brand details make it better but never block it.
   const setup = [
-    { done: done >= 3, label: 'Fill in your brand', detail: `${done} of ${PROFILE_SECTIONS.length} sections done`, href: '/brand' },
-    { done: profile.socialLinks.length > 0 || d.channels.length > 0, label: 'Add your social links', detail: profile.socialLinks.length ? `${profile.socialLinks.length} on your media kit` : 'So brands can find you everywhere', href: '/page#links' },
+    ...(deps ? [{ done: d.channels.length > 0, label: 'Connect Instagram', detail: d.channels.length ? 'Your numbers are verified' : 'Verified followers, reach and top posts', href: '/channels' }] : []),
     { done: page.published, label: 'Publish your media kit', detail: page.published ? 'Live' : 'Your link for brands', href: '/page' },
+    { done: profile.socialLinks.length > 0, label: 'Add your other socials', detail: profile.socialLinks.length ? `${profile.socialLinks.length} on your media kit` : 'TikTok, YouTube and more', href: '/page#links' },
+    { done: done >= 3, label: 'Tell brands about you', detail: `Optional: ${done} of ${PROFILE_SECTIONS.length} brand sections`, href: '/brand' },
   ];
+  const setupDone = setup.every((s) => s.done);
+  const nextStep = setup.find((s) => !s.done);
 
   return (
     <div className="flex flex-col gap-8">
@@ -99,6 +103,28 @@ export default async function HomePage() {
         </ul>
       </nav>
 
+      {!setupDone && (
+        <section aria-labelledby="setup" className="panel">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h2 id="setup" className="display text-2xl">Get set up</h2>
+            {nextStep && <Link href={nextStep.href} className="btn">{nextStep.label}</Link>}
+          </div>
+          <ol className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {setup.map((s, i) => (
+              <li key={s.href}>
+                <Link href={s.href} className={`flex h-full items-center gap-3 rounded-tile p-4 ring-1 transition-colors ${s.done ? 'bg-lilac/70 ring-transparent' : 'bg-white/80 ring-line hover:ring-royal'}`}>
+                  <span className={`grid size-9 shrink-0 place-items-center rounded-full text-sm font-bold ${s.done ? 'bg-royal text-white' : 'bg-lilac text-royal-deep'}`}>{s.done ? '✓' : i + 1}</span>
+                  <span className="flex flex-col">
+                    <span className="font-semibold">{s.label}</span>
+                    <span className="text-sm text-ink-soft">{s.detail}</span>
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ol>
+        </section>
+      )}
+
       <section aria-labelledby="invite" className="panel flex flex-col gap-4 bg-gradient-to-br from-white/75 to-lilac/80">
         <div className="flex flex-wrap items-baseline justify-between gap-3">
           <h2 id="invite" className="display text-2xl">Invite creators</h2>
@@ -114,25 +140,6 @@ export default async function HomePage() {
           ))}
         </dl>
       </section>
-
-      {setup.some((s) => !s.done) && (
-        <section aria-labelledby="setup" className="panel">
-          <h2 id="setup" className="display text-2xl">Get set up</h2>
-          <ol className="mt-4 grid gap-3 sm:grid-cols-3">
-            {setup.map((s, i) => (
-              <li key={s.href}>
-                <Link href={s.href} className={`flex h-full items-center gap-3 rounded-tile p-4 ring-1 transition-colors ${s.done ? 'bg-lilac/70 ring-transparent' : 'bg-white/80 ring-line hover:ring-royal'}`}>
-                  <span className={`grid size-9 shrink-0 place-items-center rounded-full text-sm font-bold ${s.done ? 'bg-royal text-white' : 'bg-lilac text-royal-deep'}`}>{s.done ? '✓' : i + 1}</span>
-                  <span className="flex flex-col">
-                    <span className="font-semibold">{s.label}</span>
-                    <span className="text-sm text-ink-soft">{s.detail}</span>
-                  </span>
-                </Link>
-              </li>
-            ))}
-          </ol>
-        </section>
-      )}
 
       {d.channels.length === 0 ? (
         <section className="panel flex flex-col items-start gap-3">

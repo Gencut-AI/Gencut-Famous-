@@ -22,7 +22,7 @@ describe('Netlify function bundles', () => {
 
   it('the daily sync declares its schedule and stays off, naming what is missing, without settings', async () => {
     const mod = (await import(pathToFileURL(join(out, 'creator-daily-sync.mjs')).href)) as { config: { schedule: string }; default: () => Promise<Response> };
-    assert.equal(mod.config.schedule, '@hourly');
+    assert.equal(mod.config.schedule, '*/15 * * * *', 'every 15 minutes: enough runs to read a few hundred channels a day');
     const saved = { ...process.env };
     for (const k of ['DATABASE_URL', 'INSTAGRAM_APP_ID', 'INSTAGRAM_APP_SECRET', 'GENCUT_TOKEN_KEYS']) delete process.env[k];
     try {

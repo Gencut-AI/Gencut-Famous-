@@ -86,3 +86,13 @@ Each entry: date, decision, why, and what would make us revisit it. Newest last.
 
 **Decision (Paul, 19 Nov):** add "Continue with Google" through Supabase's Google provider (PKCE; Google returns to `/auth/confirm?via=google` in the same browser, so referral cookies still apply). The button shows only when `GENCUT_GOOGLE_SIGNIN=on`, set after the provider is configured, so no deploy shows a broken button; `/api/health` reports `googleSignIn`. Email stays: the check-your-inbox screen now offers "Send a new email" and "Use a different email" and points to the spam folder. Outside the code: links last 24 hours (Supabase Email OTP expiration 86400 s), both email templates carry the code, and gencut.ai gets a DMARC record.
 **Not done:** Sign in with Apple (needs a paid Apple developer account), passwords.
+
+## D-015 Ready for the first 100 creators (19 Nov 2026)
+
+**Context:** at 100 creators the hourly sync (3 channels a run, about 12 seconds each) covered only about 72 channels a day, and two runs once read the same channel twice. New creators met five setup steps with the brand forms first and Instagram last.
+**Decision:**
+- Sync: post insights fetched 5 at a time, readings and posts saved in one statement each, and the scheduled function runs every 15 minutes, claiming one channel at a time (`creator_channels.sync_claimed_at`, migration 0008; `FOR UPDATE SKIP LOCKED`, a claim older than 10 minutes counts as abandoned) and claiming no new channel after 18 seconds, inside Netlify's 30-second limit. On-demand reads use the same claim.
+- Setup order on Home: Connect Instagram → Publish your media kit → Add your other socials → Tell brands about you (optional), shown above the invite panel with a button for the next step. Publishing never required the brand forms.
+- On a channel's first read, if the creator has no profile photo, the account's own Instagram picture becomes the kit photo (Instagram CDN hosts only, https, 5 MB cap, type sniffed, audited with `source: instagram`). A photo the creator chose is never replaced.
+- Staff sign-ups page shows the funnel (asked → signed in → profile → Instagram connected → kit live, counting owned creators only) and the median time to a live kit.
+**Outside the code (Paul):** Supabase email rate limit, Resend daily cap, Supabase paid plan, Meta App Review (docs/meta-app-review.md).

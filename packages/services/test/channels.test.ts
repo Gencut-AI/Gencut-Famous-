@@ -12,6 +12,10 @@ import {
   metaDataDeletion,
   metaDeauthorized,
   signState,
+  fetchInstagramPhoto,
+  isInstagramPhotoUrl,
+  listMedia,
+  syncAllDue,
   syncInstagramChannel,
   syncWorkspace,
   verifyState,
@@ -159,6 +163,70 @@ describe('Instagram sync', () => {
     ig.fail = {};
   });
 
+  it('saves a whole sync in one pass, and post insights arrive in post order', async () => {
+    const many = new FakeInstagram();
+    many.acct = { ...many.acct, userId: '17841400000000077', username: 'many.posts' };
+    many.grant = { ...many.grant, userId: '17841400000000077' };
+    many.media = Array.from({ length: 12 }, (_, i) => ({ id: `p${i}`, caption: `Post ${i}`, mediaType: 'VIDEO', productType: 'REELS', permalink: `https://www.instagram.com/reel/p${i}/`, timestamp: new Date(Date.UTC(2026, 9, 1 + i)), thumbnailUrl: null, likeCount: i, commentsCount: 0 }));
+    for (let i = 0; i < 12; i++) many.mediaInsights.set(`p${i}`, { data: [{ name: 'views', values: [{ value: 1000 + i }] }] });
+    const u2 = user();
+    const ws2 = await creator(h.sql, u2, 'ig.many');
+    const id = (await connectInstagram(h.sql, u2, ws2, 'AUTH_CODE_many', 'https://app/cb', deps(many))).id;
+    const r = await syncInstagramChannel(h.sql, id, deps(many), 'manual');
+    assert.equal(r.status, 'ok');
+    assert.equal(r.posts, 12);
+    const views = await h.sql<{ external_id: string; value: string }[]>`
+      SELECT c.external_id, s.value FROM creator_metric_snapshots s JOIN creator_content c ON c.id = s.content_id
+      WHERE s.channel_id = ${id} AND s.metric = 'views' ORDER BY c.external_id`;
+    assert.equal(views.length, 12, 'one views reading per post');
+    for (const v of views) assert.equal(Number(v.value), 1000 + Number(v.external_id.slice(1)), 'each post keeps its own number');
+  });
+
+  it('the first read takes the Instagram picture as the kit photo only when there is none, and only from Instagram hosts', async () => {
+    const PNG = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 1, 2, 3]);
+    const pic = new FakeInstagram();
+    pic.acct = { ...pic.acct, userId: '17841400000000088', username: 'has.pic', profilePictureUrl: 'https://scontent.cdninstagram.com/v/pic.jpg' };
+    pic.grant = { ...pic.grant, userId: '17841400000000088' };
+    const u3 = user();
+    const ws3 = await creator(h.sql, u3, 'ig.pic');
+    const id = (await connectInstagram(h.sql, u3, ws3, 'AUTH_CODE_pic', 'https://app/cb', deps(pic))).id;
+    const asked: string[] = [];
+    const withPhoto = { ...deps(pic), fetchPhoto: async (url: string) => { asked.push(url); return PNG; } };
+    await syncInstagramChannel(h.sql, id, withPhoto, 'manual');
+    const media = await listMedia(h.sql, u3, ws3);
+    assert.equal(media.filter((m) => m.kind === 'profile_photo').length, 1);
+    assert.deepEqual(asked, ['https://scontent.cdninstagram.com/v/pic.jpg']);
+    await syncInstagramChannel(h.sql, id, withPhoto, 'manual');
+    assert.equal(asked.length, 1, 'only on the first read');
+
+    // Not an image: nothing stored.
+    const u4 = user();
+    const ws4 = await creator(h.sql, u4, 'ig.nopic');
+    const bad = new FakeInstagram();
+    bad.acct = { ...bad.acct, userId: '17841400000000099', username: 'bad.pic', profilePictureUrl: 'https://scontent.cdninstagram.com/v/x.jpg' };
+    bad.grant = { ...bad.grant, userId: '17841400000000099' };
+    const id4 = (await connectInstagram(h.sql, u4, ws4, 'AUTH_CODE_bad', 'https://app/cb', deps(bad))).id;
+    await syncInstagramChannel(h.sql, id4, { ...deps(bad), fetchPhoto: async () => new TextEncoder().encode('<svg onload=alert(1)>') }, 'manual');
+    assert.equal((await listMedia(h.sql, u4, ws4)).length, 0);
+  });
+
+  it('downloads profile pictures only from Instagram CDN hosts over https', async () => {
+    assert.equal(isInstagramPhotoUrl('https://scontent-mia3-1.cdninstagram.com/v/t51/pic.jpg'), true);
+    assert.equal(isInstagramPhotoUrl('https://scontent.xx.fbcdn.net/v/pic.jpg'), true);
+    assert.equal(isInstagramPhotoUrl('http://scontent.cdninstagram.com/pic.jpg'), false);
+    assert.equal(isInstagramPhotoUrl('https://cdninstagram.com.evil.example/pic.jpg'), false);
+    assert.equal(isInstagramPhotoUrl('https://169.254.169.254/latest'), false);
+    assert.equal(isInstagramPhotoUrl(null), false);
+    let called = false;
+    const fake = (async () => { called = true; return new Response('x'); }) as typeof fetch;
+    assert.equal(await fetchInstagramPhoto('https://evil.example/pic.jpg', fake), null);
+    assert.equal(called, false, 'refused before any request');
+    const big = (async () => new Response('x', { headers: { 'content-length': String(6 * 1024 * 1024) } })) as typeof fetch;
+    assert.equal(await fetchInstagramPhoto('https://scontent.cdninstagram.com/p.jpg', big), null);
+    const ok = (async () => new Response(new Uint8Array([1, 2, 3]))) as typeof fetch;
+    assert.deepEqual(await fetchInstagramPhoto('https://scontent.cdninstagram.com/p.jpg', ok), new Uint8Array([1, 2, 3]));
+  });
+
   it('on-demand sync waits 15 minutes between reads unless forced', async () => {
     const results = await syncWorkspace(h.sql, u, ws, deps(ig));
     assert.equal(results.length, 0);
@@ -210,5 +278,55 @@ describe('Meta signed requests', () => {
     assert.equal(parseSignedRequest(`${sig}.${payload}`, 'other-secret'), null);
     assert.equal(parseSignedRequest(`${sig}x.${payload}`, 'app-secret'), null);
     assert.equal(parseSignedRequest(null, 'app-secret'), null);
+  });
+});
+
+describe('Scheduled sync at scale', () => {
+  let h: Harness;
+  const ids: string[] = [];
+  const later = new Date('2026-11-02T15:00:00Z');
+  before(async () => {
+    h = await harness();
+    for (let i = 0; i < 5; i++) {
+      const ig = new FakeInstagram();
+      const igId = `1784140000000100${i}`;
+      ig.acct = { ...ig.acct, userId: igId, username: `scale.${i}` };
+      ig.grant = { ...ig.grant, userId: igId };
+      const u = user();
+      const ws = await creator(h.sql, u, `scale.${i}`);
+      ids.push((await connectInstagram(h.sql, u, ws, `AUTH_CODE_scale_${i}`, 'https://app/cb', deps(ig))).id);
+    }
+  });
+  after(() => h.close());
+
+  it('two runs at the same moment never read the same channel, and together cover all of them', async () => {
+    const ig = new FakeInstagram();
+    const [a, b] = await Promise.all([syncAllDue(h.sql, deps(ig, later), { limit: 3 }), syncAllDue(h.sql, deps(ig, later), { limit: 3 })]);
+    const seen = [...a, ...b].map((r) => r.channelId);
+    assert.equal(new Set(seen).size, seen.length, 'no channel read twice');
+    assert.equal(seen.length, 5);
+    assert.deepEqual([...seen].sort(), [...ids].sort());
+    const claimed = await h.sql<{ n: number }[]>`SELECT count(*)::int AS n FROM creator_channels WHERE sync_claimed_at IS NOT NULL AND id = ANY(${ids})`;
+    assert.equal(claimed[0]?.n, 0, 'claims are cleared when a read finishes');
+  });
+
+  it('respects the limit and the time budget, and skips channels read in the last 20 hours', async () => {
+    const ig = new FakeInstagram();
+    assert.equal((await syncAllDue(h.sql, deps(ig, later), { limit: 5 })).length, 0, 'all were read moments ago');
+    const nextDay = new Date(later.getTime() + 21 * 3_600_000);
+    assert.equal((await syncAllDue(h.sql, deps(ig, nextDay), { limit: 2 })).length, 2);
+    assert.equal((await syncAllDue(h.sql, deps(ig, nextDay), { budgetMs: 0 })).length, 0, 'no time left: claims nothing');
+    assert.equal((await syncAllDue(h.sql, deps(ig, nextDay))).length, 3, 'the rest');
+  });
+
+  it('a claim left by a crashed run is taken over after 10 minutes, not before', async () => {
+    const ig = new FakeInstagram();
+    const day3 = new Date(later.getTime() + 2 * 86_400_000);
+    await h.sql`UPDATE creator_channels SET sync_claimed_at = ${new Date(day3.getTime() - 5 * 60_000)} WHERE id = ${ids[0]!}`;
+    await h.sql`UPDATE creator_channels SET sync_claimed_at = ${new Date(day3.getTime() - 11 * 60_000)} WHERE id = ${ids[1]!}`;
+    const done = (await syncAllDue(h.sql, deps(ig, day3))).map((r) => r.channelId);
+    assert.ok(!done.includes(ids[0]!), 'a fresh claim is left alone');
+    assert.ok(done.includes(ids[1]!), 'an abandoned claim is taken over');
+    assert.equal(done.length, 4);
   });
 });

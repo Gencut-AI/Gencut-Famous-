@@ -19,5 +19,6 @@ export * from './connectors/instagram-api.ts';
 export * from './connectors/instagram-unified-api.ts';
 export * from './connectors/channels.ts';
 export * from './connectors/meta-signed-request.ts';
+export * from './connectors/profile-photo.ts';
 export * from './creators/referrals.ts';
 export * from './signups.ts';
