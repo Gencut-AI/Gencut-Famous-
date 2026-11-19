@@ -29,3 +29,15 @@ Authentication → Emails → Templates. Set **Magic Link** and **Confirm signup
 ```
 
 `{{ .RedirectTo }}` is the `emailRedirectTo` the app sends (`/auth/confirm?next=…`), so it already has a `?` and the template appends with `&`. It must match the redirect allow-list (`https://gencutfamous.netlify.app/**`).
+
+## Sign-in for the beta (one time; D-014)
+
+**Links that last a day.** Supabase → Authentication → Sign In / Providers → Email → *Email OTP Expiration* = `86400`. Set both templates above (Magic Link **and** Confirm signup), so new people get the code too.
+
+**Inbox, not spam.** Add a DMARC record where gencut.ai's DNS is managed: name `_dmarc`, type TXT, value `v=DMARC1; p=none; rua=mailto:dmarc@gencut.ai` (any mailbox you read). Resend already signs mail for mail.gencut.ai (DKIM and SPF are in place).
+
+**Continue with Google.**
+1. Google Cloud console → APIs & Services → OAuth consent screen: app name *GenCut Famous*, support email, logo optional, authorized domain `supabase.co` and `netlify.app`; publish the app (scopes are only email and profile, so no Google review).
+2. Credentials → Create credentials → OAuth client ID → Web application. Authorized redirect URI: `https://kwbttmmadzxlbplqgrvi.supabase.co/auth/v1/callback`. Copy the client ID and secret.
+3. Supabase → Authentication → Sign In / Providers → Google: enable, paste the client ID and secret, save.
+4. Netlify (gencutfamous) → Environment variables: `GENCUT_GOOGLE_SIGNIN=on`, then redeploy. `/api/health` shows `"googleSignIn":"on"`.

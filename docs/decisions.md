@@ -79,3 +79,10 @@ Each entry: date, decision, why, and what would make us revisit it. Newest last.
 
 **Decision:** Add a second client behind the same `InstagramApi` interface, `UnifiedInstagramApi`, used when `INSTAGRAM_CONFIG_ID` is set; the Instagram Login client stays for apps that still have it. Sync, storage, metrics and states are unchanged. Permission checks treat `instagram_basic`/`instagram_manage_insights` as the same permissions as `instagram_business_basic`/`instagram_business_manage_insights`; stored grants keep Meta's own names. The Instagram account id comes from `debug_token`'s `granular_scopes`, because Meta's newer endpoints for this setup are not fully documented; the first live connection is the check.
 
+
+## D-014 Beta sign-in: Continue with Google, email kept as backup (19 Nov 2026)
+
+**Context:** The first two outside sign-ups both stalled at the email step: one opened his link 19 hours later (links expired after an hour), the other never opened the email (gencut.ai has no DMARC record, so company inboxes may file it as spam).
+
+**Decision (Paul, 19 Nov):** add "Continue with Google" through Supabase's Google provider (PKCE; Google returns to `/auth/confirm?via=google` in the same browser, so referral cookies still apply). The button shows only when `GENCUT_GOOGLE_SIGNIN=on`, set after the provider is configured, so no deploy shows a broken button; `/api/health` reports `googleSignIn`. Email stays: the check-your-inbox screen now offers "Send a new email" and "Use a different email" and points to the spam folder. Outside the code: links last 24 hours (Supabase Email OTP expiration 86400 s), both email templates carry the code, and gencut.ai gets a DMARC record.
+**Not done:** Sign in with Apple (needs a paid Apple developer account), passwords.

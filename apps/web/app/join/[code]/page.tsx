@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import { notFound, redirect } from 'next/navigation';
 import { cache } from 'react';
 import { db } from '../../../lib/db.ts';
+import { googleSignInEnabled } from '../../../lib/google-sign-in.ts';
 import { currentUser } from '../../../lib/session.ts';
 import { Avatar } from '../../_ui/avatar.tsx';
 import { Icons, Wordmark } from '../../_ui/icons.tsx';
@@ -51,7 +52,7 @@ export default async function JoinPage({ params }: { params: Promise<{ code: str
         <h1 className="display mt-2 text-[clamp(2.2rem,8vw,3.5rem)]">invited you to GenCut Famous</h1>
         <p className="mx-auto mt-4 max-w-[44ch] text-lg text-ink-soft">The AI helper for creators: your brand, your real numbers and a media kit brands can trust. Free to start.</p>
         <a href={`/api/join/${encodeURIComponent(p.code)}`} className="btn mt-7 h-14 w-full px-8 text-lg sm:w-auto">Create my free account</a>
-        <p className="mt-3 text-sm text-ink-soft">Takes about two minutes. We email you a sign-in link; no password.</p>
+        <p className="mt-3 text-sm text-ink-soft">Takes about two minutes. {googleSignInEnabled() ? 'Continue with Google or your email' : 'We email you a sign-in link'}; no password.</p>
       </section>
 
       <ul className="mt-4 grid gap-3">
