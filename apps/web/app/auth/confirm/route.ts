@@ -8,8 +8,8 @@ import { supabaseConfig } from '../../../lib/supabase/config.ts';
 const OTP_TYPES: readonly EmailOtpType[] = ['email', 'magiclink', 'signup', 'recovery', 'invite', 'email_change'];
 
 /**
- * Completes email sign-in. Accepts the token-hash link (works in any browser)
- * and the PKCE code link (same browser as the request).
+ * Completes sign-in. Accepts the email token-hash link (works in any browser)
+ * and the PKCE code from an email link or Google (same browser as the request).
  *
  * Session cookies are written onto the redirect response itself, and the
  * redirect is relative, so the browser stays on the address it came from and
@@ -22,8 +22,11 @@ export async function GET(request: NextRequest) {
   const code = params.get('code');
   const config = supabaseConfig();
   const hasOtp = Boolean(tokenHash && type && OTP_TYPES.includes(type));
+  // Google sign-in returns here with via=google; a refusal or failure there
+  // gets its own message rather than the email-link one.
+  const failed = `/sign-in?error=${params.get('via') === 'google' ? 'google' : 'link'}&next=${encodeURIComponent(safeNextPath(params.get('next')))}`;
 
-  if (!config || (!code && !hasOtp)) return redirectTo('/sign-in?error=link');
+  if (!config || (!code && !hasOtp)) return redirectTo(failed);
 
   const response = redirectTo(safeNextPath(params.get('next')));
   const supabase = createServerClient(config.url, config.publishableKey, {
@@ -42,5 +45,5 @@ export async function GET(request: NextRequest) {
     ? await supabase.auth.verifyOtp({ type: type as EmailOtpType, token_hash: tokenHash as string })
     : await supabase.auth.exchangeCodeForSession(code as string);
 
-  return error ? redirectTo('/sign-in?error=link') : response;
+  return error ? redirectTo(failed) : response;
 }

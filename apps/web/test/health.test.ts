@@ -13,6 +13,7 @@ describe('health report', () => {
       commit: null,
       database: 'not_configured',
       inquiryEmail: 'off',
+      googleSignIn: 'off',
       checkedAt: '2026-10-10T18:00:00.000Z',
     });
   });
@@ -29,6 +30,11 @@ describe('health report', () => {
     assert.equal(on.inquiryEmail, 'on');
     assert.ok(!JSON.stringify(on).includes('re_secret_value'));
     assert.equal((await getHealth({ RESEND_API_KEY: 're_x' }, async () => true, now)).inquiryEmail, 'off');
+  });
+
+  it('says whether Google sign-in is shown', async () => {
+    assert.equal((await getHealth({ GENCUT_GOOGLE_SIGNIN: 'on' }, async () => true, now)).googleSignIn, 'on');
+    assert.equal((await getHealth({ GENCUT_GOOGLE_SIGNIN: 'yes' }, async () => true, now)).googleSignIn, 'off');
   });
 
   it('degrades when the probe fails or throws, without leaking details', async () => {

@@ -11,5 +11,6 @@ export function healthEnv(): Record<string, string | undefined> {
     GENCUT_COMMIT: process.env.GENCUT_COMMIT,
     RESEND_API_KEY: process.env.RESEND_API_KEY,
     GENCUT_EMAIL_FROM: process.env.GENCUT_EMAIL_FROM,
+    GENCUT_GOOGLE_SIGNIN: process.env.GENCUT_GOOGLE_SIGNIN,
   };
 }

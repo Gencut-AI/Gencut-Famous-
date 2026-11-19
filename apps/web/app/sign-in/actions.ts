@@ -3,6 +3,7 @@
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
+import { googleSignInEnabled } from '../../lib/google-sign-in.ts';
 import { normalizeOtpCode } from '../../lib/otp.ts';
 import { safeNextPath } from '../../lib/safe-redirect.ts';
 import { signInRedirectOrigin } from '../../lib/site-url.ts';
@@ -44,6 +45,36 @@ export async function sendSignInLink(_prev: SignInState, form: FormData): Promis
     return { status: 'error', message, email: parsed.data };
   }
   return { status: 'sent', email: parsed.data };
+}
+
+/**
+ * Starts "Continue with Google". Supabase returns Google's consent address; the
+ * PKCE verifier is stored in this browser's cookies, and Google sends the
+ * person back to /auth/confirm in the same browser, so the code exchange works.
+ */
+export async function signInWithGoogle(form: FormData): Promise<void> {
+  const next = safeNextPath(String(form.get('next') ?? ''));
+  if (!googleSignInEnabled()) redirect(`/sign-in?error=google&next=${encodeURIComponent(next)}`);
+
+  const h = await headers();
+  const origin = signInRedirectOrigin(
+    process.env.GENCUT_SITE_URL,
+    h.get('x-forwarded-host') ?? h.get('host'),
+    h.get('x-forwarded-proto'),
+  );
+  if (!origin) redirect(`/sign-in?error=google&next=${encodeURIComponent(next)}`);
+
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: `${origin}/auth/confirm?via=google&next=${encodeURIComponent(next)}`,
+      queryParams: { prompt: 'select_account' },
+      skipBrowserRedirect: true,
+    },
+  });
+  if (error || !data.url) redirect(`/sign-in?error=google&next=${encodeURIComponent(next)}`);
+  redirect(data.url);
 }
 
 export type CodeState = { status: 'idle' } | { status: 'error'; message: string };
