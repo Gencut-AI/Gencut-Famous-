@@ -24,6 +24,11 @@ export interface ConnectorDeps {
   readonly instagram: InstagramApi;
   readonly cipher: TokenCipher;
   readonly now?: () => Date;
+  /**
+   * Downloads the account's profile picture on the first read, so a new media
+   * kit has a photo without an upload. Optional: without it, no photo is taken.
+   */
+  readonly fetchPhoto?: (url: string) => Promise<Uint8Array | null>;
 }
 
 export interface ChannelView {

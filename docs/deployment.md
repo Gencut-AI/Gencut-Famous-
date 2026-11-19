@@ -41,3 +41,12 @@ Authentication → Emails → Templates. Set **Magic Link** and **Confirm signup
 2. Credentials → Create credentials → OAuth client ID → Web application. Authorized redirect URI: `https://kwbttmmadzxlbplqgrvi.supabase.co/auth/v1/callback`. Copy the client ID and secret.
 3. Supabase → Authentication → Sign In / Providers → Google: enable, paste the client ID and secret, save.
 4. Netlify (gencutfamous) → Environment variables: `GENCUT_GOOGLE_SIGNIN=on`, then redeploy. `/api/health` shows `"googleSignIn":"on"`.
+
+## Limits to raise before 100 creators (D-015)
+
+| Where | Setting | Why |
+| --- | --- | --- |
+| Supabase → Authentication → Rate Limits | *Rate limit for sending emails*: at least 100 per hour | Every email sign-in is one email; an influencer's post can bring dozens of sign-ups in an hour. Configurable only with custom SMTP, which is set. |
+| Resend → Billing | Free plan sends 100 emails a day and 3,000 a month; move to a paid plan before a launch post | Sign-in emails and inquiry alerts share this cap. Google sign-in sends no email. |
+| Supabase → Billing | Paid plan | Free projects pause after a week of low activity and hold 500 MB; at 100 creators the daily Instagram readings reach that in about three months. |
+| Meta | App Review with Advanced Access (docs/meta-app-review.md) | Until then, each creator must be added and accept an Instagram Tester invite. |

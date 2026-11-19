@@ -1,5 +1,5 @@
 import 'server-only';
-import { type ConnectorDeps, GraphInstagramApi, TokenCipher, UnifiedInstagramApi } from '@gencut/services';
+import { type ConnectorDeps, GraphInstagramApi, TokenCipher, UnifiedInstagramApi, fetchInstagramPhoto } from '@gencut/services';
 import { headers } from 'next/headers';
 import { signInRedirectOrigin } from './site-url.ts';
 
@@ -16,7 +16,7 @@ export function connectorDeps(): ConnectorDeps | null {
   // Meta apps created from late 2026 offer only Unified Login: with a login configuration id,
   // INSTAGRAM_APP_ID/SECRET are the Meta app's own id and secret (App settings → Basic).
   const configId = process.env.INSTAGRAM_CONFIG_ID?.trim();
-  return { instagram: configId ? new UnifiedInstagramApi(appId, appSecret, configId) : new GraphInstagramApi(appId, appSecret), cipher };
+  return { instagram: configId ? new UnifiedInstagramApi(appId, appSecret, configId) : new GraphInstagramApi(appId, appSecret), cipher, fetchPhoto: (url) => fetchInstagramPhoto(url) };
 }
 
 export function missingConnectorSettings(): string[] {

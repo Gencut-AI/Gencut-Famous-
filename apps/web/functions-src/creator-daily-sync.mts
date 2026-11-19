@@ -1,12 +1,17 @@
 /**
- * Hourly: take the daily snapshot for up to 3 connected channels not read in
- * the last 20 hours. Several runs a day cover every channel; growth history
- * depends on these snapshots (Instagram keeps account insights only 90 days).
- * Scheduled functions have a short time limit, hence the small batch.
+ * Every 15 minutes: take the daily snapshot for connected channels not read in
+ * the last 20 hours. Growth history depends on these snapshots (Instagram keeps
+ * account insights only 90 days). Scheduled functions stop at 30 seconds, so a
+ * run stops claiming new channels after 18 seconds; one channel takes a few
+ * seconds, so 96 runs a day cover several hundred channels. Runs that overlap
+ * never take the same channel (syncAllDue claims each one).
  */
-import { GraphInstagramApi, TokenCipher, UnifiedInstagramApi, createDb, syncAllDue } from '@gencut/services';
+import { GraphInstagramApi, TokenCipher, UnifiedInstagramApi, createDb, fetchInstagramPhoto, syncAllDue } from '@gencut/services';
 
-export const config = { schedule: '@hourly' };
+export const config = { schedule: '*/15 * * * *' };
+
+/** Stop claiming new channels after this long, leaving room under the 30-second limit. */
+const BUDGET_MS = 18_000;
 
 export default async function handler(): Promise<Response> {
   const url = process.env.DATABASE_URL;
@@ -22,7 +27,7 @@ export default async function handler(): Promise<Response> {
   try {
     const configId = process.env.INSTAGRAM_CONFIG_ID?.trim();
     const instagram = configId ? new UnifiedInstagramApi(appId, appSecret, configId) : new GraphInstagramApi(appId, appSecret);
-    const results = await syncAllDue(sql, { instagram, cipher }, 3);
+    const results = await syncAllDue(sql, { instagram, cipher, fetchPhoto: (u) => fetchInstagramPhoto(u) }, { budgetMs: BUDGET_MS });
     return Response.json({ synced: results.map((r) => ({ status: r.status, readings: r.readings })) });
   } finally {
     await sql.end({ timeout: 5 });

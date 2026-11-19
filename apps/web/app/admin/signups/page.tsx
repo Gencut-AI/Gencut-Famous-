@@ -11,12 +11,15 @@ export const metadata: Metadata = { title: 'Sign-ups', robots: { index: false } 
 export const dynamic = 'force-dynamic';
 
 const STAGE_LABELS: Record<SignupStage, string> = {
-  onboarded: 'Set up',
+  published: 'Media kit live',
+  connected: 'Instagram connected',
+  onboarded: 'Profile created',
   signed_in: 'Signed in, no profile yet',
   not_finished: 'Never finished sign-in',
 };
 
-const count = (people: readonly AdminSignup[], stage: SignupStage) => people.filter((p) => p.stage === stage).length;
+/** Minutes as "45 min", "3 h 10 min" or "2 days". */
+const duration = (m: number) => (m < 60 ? `${m} min` : m < 48 * 60 ? `${Math.floor(m / 60)} h${m % 60 ? ` ${m % 60} min` : ''}` : `${Math.round(m / 1440)} days`);
 const referrer = (p: AdminSignup) => p.creators.find((c) => c.referredByHandle)?.referredByHandle ?? null;
 const time = (d: Date | null, known: boolean) => (d ? when(d) : known ? '—' : 'Unavailable');
 
@@ -25,7 +28,7 @@ export default async function AdminSignupsPage() {
   const ctx = await currentUser();
   if (!ctx) redirect('/sign-in?next=/admin/signups');
   if (!isAdmin(ctx.email, process.env.GENCUT_ADMIN_EMAILS)) notFound();
-  const { people, signInRecords } = await listSignups(db(), ctx, process.env.GENCUT_ADMIN_EMAILS);
+  const { people, signInRecords, funnel } = await listSignups(db(), ctx, process.env.GENCUT_ADMIN_EMAILS);
   const known = signInRecords === 'available';
   return (
     <main className="mx-auto max-w-6xl px-5 py-8 sm:px-10">
@@ -35,11 +38,24 @@ export default async function AdminSignupsPage() {
         {people.length} {people.length === 1 ? 'person' : 'people'}, newest first. Times are Eastern.{' '}
         <Link href="/admin/referrals" className="text-royal-deep underline-offset-4 hover:underline">Referral leads</Link>
       </p>
-      <dl className="mt-6 grid grid-cols-3 gap-3">
-        <div className="panel"><dt className="text-sm text-ink-soft">{STAGE_LABELS.onboarded}</dt><dd className="display text-3xl">{count(people, 'onboarded')}</dd></div>
-        <div className="panel"><dt className="text-sm text-ink-soft">{STAGE_LABELS.signed_in}</dt><dd className="display text-3xl">{count(people, 'signed_in')}</dd></div>
-        <div className="panel"><dt className="text-sm text-ink-soft">{STAGE_LABELS.not_finished}</dt><dd className="display text-3xl">{known ? count(people, 'not_finished') : '—'}</dd></div>
+      <h2 className="display mt-8 text-2xl">How far people get</h2>
+      <p className="mt-1 text-sm text-ink-soft">Each step counts everyone who reached it or went further.</p>
+      <dl className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-5">
+        {[
+          { k: 'Asked to sign in', v: funnel.asked },
+          { k: 'Signed in', v: funnel.signedIn },
+          { k: 'Profile created', v: funnel.onboarded },
+          { k: 'Instagram connected', v: funnel.connected },
+          { k: 'Media kit live', v: funnel.published },
+        ].map((x) => (
+          <div key={x.k} className="panel"><dt className="text-sm text-ink-soft">{x.k}</dt><dd className="display text-3xl">{x.v ?? '—'}</dd></div>
+        ))}
       </dl>
+      <p className="mt-3 text-sm text-ink-soft">
+        {funnel.medianMinutesToPublished === null
+          ? 'No media kit has gone live yet, so there is no time to report.'
+          : `Typical time from asking to sign in to a live media kit: ${duration(Math.round(funnel.medianMinutesToPublished))} (median of ${funnel.published}).`}
+      </p>
       {known ? null : (
         <p className="panel mt-3 text-sm text-ink-soft">
           Sign-in records could not be read, so people who never finished signing in are not listed and sign-in times are unavailable.
@@ -48,7 +64,7 @@ export default async function AdminSignupsPage() {
       <div className="panel mt-6 overflow-x-auto p-0 sm:p-0">
         <table className="w-full text-left text-sm">
           <thead className="bg-lilac/70 text-ink-soft">
-            <tr><th className="p-3">Email</th><th className="p-3">Status</th><th className="p-3">Creator</th><th className="p-3">Referred by</th><th className="p-3">First seen</th><th className="p-3">Last sign-in</th></tr>
+            <tr><th className="p-3">Email</th><th className="p-3">Status</th><th className="p-3">Creator</th><th className="p-3">Referred by</th><th className="p-3">First seen</th><th className="p-3">Last sign-in</th><th className="p-3">Kit live after</th></tr>
           </thead>
           <tbody className="divide-y divide-lilac">
             {people.map((p) => (
@@ -59,6 +75,7 @@ export default async function AdminSignupsPage() {
                 <td className="p-3">{referrer(p) ? `@${referrer(p)}` : '—'}</td>
                 <td className="whitespace-nowrap p-3">{time(p.requestedAt ?? p.firstSeenAt, true)}</td>
                 <td className="whitespace-nowrap p-3">{time(p.lastSignInAt, known)}</td>
+                <td className="whitespace-nowrap p-3">{p.minutesToPublished === null ? '—' : duration(p.minutesToPublished)}</td>
               </tr>
             ))}
           </tbody>

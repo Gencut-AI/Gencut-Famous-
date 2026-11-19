@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { after, before, describe, it } from 'node:test';
-import { createCreator, ensureUser, listSignups } from '../src/index.ts';
+import { createCreator, ensureUser, listSignups, median } from '../src/index.ts';
 import { type Harness, creator, expectService, harness, user } from './helpers.ts';
 
 const ADMINS = 'paul@gencut.ai';
@@ -59,5 +59,29 @@ describe('staff sign-up list', () => {
     assert.equal(s.people.find((p) => p.email === 'looker@example.com')?.stage, 'signed_in');
     assert.ok(s.people.some((p) => p.email === 'ana@example.com'), 'a user missing from the provider records is still listed');
     assert.equal(s.people.length, 4, 'a provider row with no email and no account is skipped');
+  });
+
+  it('counts how far people got and how long a live media kit took, using only creators they own', async () => {
+    const [jw] = await h.sql<{ workspace_id: string }[]>`SELECT cp.workspace_id FROM creator_profiles cp WHERE cp.handle = 'jay.star'`;
+    const [aw] = await h.sql<{ workspace_id: string }[]>`SELECT cp.workspace_id FROM creator_profiles cp WHERE cp.handle = 'ana.makes'`;
+    // Jay: asked 10:00, connected Instagram 10:12, kit live 10:30. Ana: connected, not published.
+    await h.sql`INSERT INTO creator_channels (workspace_id, platform, external_account_id, username, connected_by, connected_at)
+                VALUES (${jw!.workspace_id}, 'instagram', '178414009', 'jay.star', ${jay.userId}, '2026-11-01T10:12:00Z'),
+                       (${aw!.workspace_id}, 'instagram', '178414010', 'ana.makes', ${ana.userId}, '2026-11-04T09:00:00Z')`;
+    await h.sql`UPDATE profile_pages SET published = true, published_at = '2026-11-01T10:30:00Z', published_by = ${jay.userId} WHERE workspace_id = ${jw!.workspace_id}`;
+    const s = await listSignups(h.sql, paul, ADMINS);
+    const j = s.people.find((p) => p.email === 'jay@star.example');
+    assert.equal(j?.stage, 'published');
+    assert.equal(j?.connectedAt?.toISOString(), '2026-11-01T10:12:00.000Z');
+    assert.equal(j?.minutesToPublished, 30);
+    assert.equal(s.people.find((p) => p.email === 'ana@example.com')?.stage, 'connected');
+    assert.deepEqual(s.funnel, { asked: 4, signedIn: 3, onboarded: 2, connected: 2, published: 1, medianMinutesToPublished: 30 });
+  });
+
+  it('median is the middle value, the mean of the two middles, or null', () => {
+    assert.equal(median([]), null);
+    assert.equal(median([7]), 7);
+    assert.equal(median([30, 10, 20]), 20);
+    assert.equal(median([40, 10, 20, 30]), 25);
   });
 });
