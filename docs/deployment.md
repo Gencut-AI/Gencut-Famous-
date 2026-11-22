@@ -19,13 +19,13 @@ Variables already set on the site: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPA
 
 ## Supabase sign-in email templates (one time, in the Supabase dashboard)
 
-Authentication → Emails → Templates. Set **Magic Link** and **Confirm signup** to the same body (D-011). Subject: `Your GenCut Famous sign-in`.
+Authentication → Emails → Templates. Set **Magic Link** and **Confirm signup** to the same body (D-011). Subject: `Your GenCut Famous sign-in`. The body says 24 hours because Email OTP expiration is 86400 (D-014).
 
 ```html
 <h2>Sign in to GenCut Famous</h2>
 <p><a href="{{ .RedirectTo }}&token_hash={{ .TokenHash }}&type=email">Sign in</a></p>
 <p>Or type this code on the sign-in screen: <strong>{{ .Token }}</strong></p>
-<p>The link and code expire in one hour. If you didn't ask to sign in, ignore this email.</p>
+<p>The link and code work for 24 hours. If you didn't ask to sign in, ignore this email.</p>
 ```
 
 `{{ .RedirectTo }}` is the `emailRedirectTo` the app sends (`/auth/confirm?next=…`), so it already has a `?` and the template appends with `&`. It must match the redirect allow-list (`https://gencutfamous.netlify.app/**`).
